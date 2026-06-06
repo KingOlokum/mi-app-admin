@@ -1,0 +1,63 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #020617;
+  color: white;
+}
+
+/* centrar todo */
+body > div {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  min-height: 100vh;
+  padding-top: 40px;
+}
+
+/* tarjetas */
+.card {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 12px;
+  width: 350px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* inputs */
+input {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: white;
+}
+
+/* botones */
+button {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #0284c7;
+  color: white;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+button:hover {
+  background: #0369a1;
+}
+
+/* títulos */
+h2, h3 {
+  text-align: center;
+}
+
+/* bloques */
+.box {
+  background: #1e293b;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
