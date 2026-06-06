@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = "http://192.168.1.45:3001"
+const API = "https://mi-app-admin.onrender.com"
 
 export default function Admin(){
 

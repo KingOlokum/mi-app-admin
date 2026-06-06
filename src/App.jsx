@@ -4,7 +4,8 @@ import Player from './Player'
 import Admin from './Admin'
 import AdminLogin from './AdminLogin'
 
-const API = "http://192.168.1.45:3001"
+const API = "https://mi-app-admin.onrender.com"
+
 
 export default function App(){
 
