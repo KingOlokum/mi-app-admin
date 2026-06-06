@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 
 const app = express()
+
+// ✅ CORS para producción (Vercel → Render)
 app.use(cors({
   origin: "*"
 }))
@@ -42,6 +44,7 @@ app.post('/admin/match',(req,res)=>{
 // ✅ ELIMINAR PARTIDO
 app.delete('/admin/match/:id',(req,res)=>{
   const id = req.params.id
+
   matches = matches.filter(m=>m.id != id)
 
   // borrar apuestas relacionadas
@@ -54,7 +57,7 @@ app.delete('/admin/match/:id',(req,res)=>{
 // ✅ HACER APUESTA
 app.post('/predict',(req,res)=>{
 
-  const match = matches.find(m=>m.id == req.body.matchId)
+  const match = matches.find(m => m.id == req.body.matchId)
 
   if(!match){
     return res.status(400).send({error:"Partido no existe"})
@@ -88,7 +91,7 @@ app.get('/bets',(req,res)=>{
 })
 
 
-// ✅ ✅ ✅ 🔥 RANKING REAL (TOP RESULTADOS)
+// ✅ ✅ ✅ RANKING
 app.get('/top-bets',(req,res)=>{
 
   let resultado = {}
@@ -99,27 +102,26 @@ app.get('/top-bets',(req,res)=>{
 
     let conteo = {}
 
-    apuestas.forEach(a => {
+    apuestas.forEach(a=>{
       conteo[a.resultado] = (conteo[a.resultado] || 0) + 1
     })
 
     let top = Object.entries(conteo)
-      .sort((a,b) => b[1] - a[1])
+      .sort((a,b)=>b[1]-a[1])
       .slice(0,3)
-      .map(i => ({
-        resultado: i[0],
-        cantidad: i[1]
+      .map(i=>({
+        resultado:i[0],
+        cantidad:i[1]
       }))
 
     resultado[match.id] = top
-
   })
 
   res.send(resultado)
 })
 
 
-// ✅ MARCAR PAGO
+// ✅ PAGOS
 app.post('/admin/pago',(req,res)=>{
 
   const {telefono,matchId} = req.body
@@ -137,7 +139,7 @@ app.post('/admin/pago',(req,res)=>{
 })
 
 
-// ✅ TOTAL DINERO
+// ✅ TOTAL
 app.get('/total',(req,res)=>{
 
   const total = predictions
@@ -148,7 +150,7 @@ app.get('/total',(req,res)=>{
 })
 
 
-// ✅ EXPORTAR EXCEL
+// ✅ EXPORTAR
 app.get('/export',(req,res)=>{
 
   let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
@@ -166,14 +168,24 @@ app.get('/export',(req,res)=>{
 
 // ✅ LOGIN ADMIN
 app.post('/admin/login',(req,res)=>{
-  if(req.body.user==="admin" && req.body.pass==="1234"){
+
+  // DEBUG (puedes dejarlo)
+  console.log("LOGIN:", req.body)
+
+  const user = req.body.user
+  const pass = req.body.pass
+
+  if(user === "admin" && pass === "1234"){
     return res.send({ok:true})
   }
+
   res.status(401).send({error:"Credenciales incorrectas"})
 })
 
 
-// ✅ INICIAR SERVER
-app.listen(3001,'0.0.0.0',()=>{
-  console.log("✅ backend listo")
+// ✅ ✅ ✅ PUERTO CORRECTO PARA RENDER
+const PORT = process.env.PORT || 3001
+
+app.listen(PORT, ()=>{
+  console.log("✅ backend listo en puerto", PORT)
 })
