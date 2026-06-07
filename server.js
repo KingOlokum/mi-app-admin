@@ -175,7 +175,7 @@ app.post('/admin/login',(req,res)=>{
   const user = req.body.user
   const pass = req.body.pass
 
-  if(user === "admin" && pass === "1234"){
+  if(user === "admin" && pass === "Segf.2208**++"){
     return res.send({ok:true})
   }
 
