@@ -3,7 +3,6 @@ import axios from "axios"
 
 const API = "https://mi-app-admin.onrender.com"
 
-// ✅ LISTA DE PAÍSES
 const countries = [
   "Colombia","Alemania","Brasil","Argentina","España",
   "Francia","Portugal","Inglaterra","Uzbekistán","RD Congo"
@@ -20,22 +19,22 @@ export default function Admin(){
   const [limite,setLimite] = useState("")
 
   useEffect(()=>{
-    cargar()
+    cargarTodo()
   },[])
 
-  // ✅ CARGAR TODO
-  const cargar = async ()=>{
-    const r = await axios.get(API+'/matches')
-    setMatches(r.data)
+  // Cargar todo
+  const cargarTodo = async ()=>{
+    const matchesRes = await axios.get(API + '/matches')
+    setMatches(matchesRes.data)
 
-    const b = await axios.get(API+'/bets')
-    setBets(b.data)
+    const betsRes = await axios.get(API + '/bets')
+    setBets(betsRes.data)
 
-    const t = await axios.get(API+'/total')
-    setTotal(t.data.total)
+    const totalRes = await axios.get(API + '/total')
+    setTotal(totalRes.data.total)
   }
 
-  // ✅ CREAR PARTIDO
+  // Crear partido
   const crear = async ()=>{
 
     if(!equipo1 || !equipo2){
@@ -48,34 +47,33 @@ export default function Admin(){
       return
     }
 
-    await axios.post(API+'/admin/match',{
+    await axios.post(API + '/admin/match',{
       equipo1,
       equipo2,
       limite
     })
 
-    alert("Partido creado ✅")
-
     setEquipo1("")
     setEquipo2("")
     setLimite("")
 
-    cargar()
+    cargarTodo()
   }
 
-  // ✅ ELIMINAR
+  // Eliminar partido
   const eliminar = async (id)=>{
-    await axios.delete(API+'/admin/match/'+id)
-    cargar()
+    await axios.delete(API + '/admin/match/' + id)
+    cargarTodo()
   }
 
-  // ✅ PAGOS
+  // Marcar pago
   const pagar = async (telefono,matchId)=>{
-    await axios.post(API+'/admin/pago',{
+    await axios.post(API + '/admin/pago',{
       telefono,
       matchId
     })
-    cargar()
+
+    await cargarTodo() // IMPORTANTE
   }
 
   return (
@@ -84,17 +82,27 @@ export default function Admin(){
 
         <h3 style={{textAlign:"center"}}>Panel Admin</h3>
 
-        {/* ✅ CREAR PARTIDO */}
-        <select style={input} value={equipo1}
-          onChange={e=>setEquipo1(e.target.value)}>
+        {/* CREAR PARTIDO */}
+        <select
+          style={input}
+          value={equipo1}
+          onChange={e=>setEquipo1(e.target.value)}
+        >
           <option value="">Equipo 1</option>
-          {countries.map(e=><option key={e}>{e}</option>)}
+          {countries.map(e=>(
+            <option key={e}>{e}</option>
+          ))}
         </select>
 
-        <select style={input} value={equipo2}
-          onChange={e=>setEquipo2(e.target.value)}>
+        <select
+          style={input}
+          value={equipo2}
+          onChange={e=>setEquipo2(e.target.value)}
+        >
           <option value="">Equipo 2</option>
-          {countries.map(e=><option key={e}>{e}</option>)}
+          {countries.map(e=>(
+            <option key={e}>{e}</option>
+          ))}
         </select>
 
         <input
@@ -108,7 +116,7 @@ export default function Admin(){
           Crear partido
         </button>
 
-        {/* ✅ PARTIDOS */}
+        {/* PARTIDOS */}
         <h4>Partidos</h4>
 
         {matches.map(m=>{
@@ -117,53 +125,52 @@ export default function Admin(){
 
           return (
             <div key={m.id} style={box}>
-
               <div>
                 {m.equipo1} vs {m.equipo2}
                 <br/>
-                <small>
-                  {new Date(m.limite).toLocaleString()}
-                </small>
+                <small>{new Date(m.limite).toLocaleString()}</small>
                 <br/>
-                <span style={{
-                  color: cerrado ? "red" : "green"
-                }}>
+                <span style={{color: cerrado ? "red" : "green"}}>
                   {cerrado ? "Cerrado" : "Abierto"}
                 </span>
               </div>
 
-              <button style={deleteBtn}
-                onClick={()=>eliminar(m.id)}>
-                ❌
+              <button
+                style={deleteBtn}
+                onClick={()=>eliminar(m.id)}
+              >
+                Eliminar
               </button>
             </div>
           )
         })}
 
-        {/* ✅ TOTAL */}
+        {/* TOTAL */}
         <h3 style={{marginTop:"15px"}}>
-          💰 Total: ${total}
+          Total: ${total}
         </h3>
 
-        {/* ✅ APUESTAS */}
+        {/* APUESTAS */}
         <h4>Apuestas</h4>
 
         {bets.map((b,i)=>(
           <div key={i} style={box}>
 
             <div style={{fontSize:"12px"}}>
-              👤 {b.usuario}<br/>
-              📱 {b.telefono}<br/>
-              🎯 {b.resultado}
+              {b.usuario}<br/>
+              {b.telefono}<br/>
+              Resultado: {b.resultado}
             </div>
 
             {b.pagado ? (
               <span style={{color:"lime"}}>
-                Pagado ✅
+                Pagado
               </span>
             ) : (
-              <button style={btn}
-                onClick={()=>pagar(b.telefono,b.matchId)}>
+              <button
+                style={btn}
+                onClick={()=>pagar(b.telefono,b.matchId)}
+              >
                 Pagar
               </button>
             )}
@@ -171,18 +178,10 @@ export default function Admin(){
           </div>
         ))}
 
-        {/* ✅ DESCARGAR EXCEL */}
+        {/* EXCEL */}
         <a
-          href={API+'/export'}
-          style={{
-            marginTop:"10px",
-            textAlign:"center",
-            padding:"10px",
-            background:"#22c55e",
-            borderRadius:"10px",
-            color:"#fff",
-            textDecoration:"none"
-          }}
+          href={API + "/export"}
+          style={excelBtn}
         >
           Descargar Excel
         </a>
@@ -193,13 +192,12 @@ export default function Admin(){
 }
 
 
-// 🎨 ESTILOS
+// ESTILOS
 
 const wrap={
   minHeight:"100vh",
   display:"flex",
   justifyContent:"center",
-  alignItems:"flex-start",
   paddingTop:"80px",
   background:"#020617"
 }
@@ -248,4 +246,14 @@ const deleteBtn={
   padding:"5px",
   borderRadius:"6px",
   cursor:"pointer"
+}
+
+const excelBtn={
+  marginTop:"10px",
+  textAlign:"center",
+  padding:"10px",
+  background:"#22c55e",
+  borderRadius:"10px",
+  color:"#fff",
+  textDecoration:"none"
 }
