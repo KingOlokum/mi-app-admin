@@ -1,31 +1,33 @@
 import express from 'express'
 import cors from 'cors'
-import fs from 'fs'
+import { MongoClient } from 'mongodb'
 
 const app = express()
 
 app.use(cors({ origin: "*" }))
 app.use(express.json())
 
-const DATA_FILE = './data.json'
+// ✅ TU URL DE MONGO (YA CONFIGURADA)
+const uri = "mongodb+srv://andressanchez03_db_user:ixmqPLWkTWBnSztxX@cluster0.wdalzh5.mongodb.net/?appName=Cluster0"
 
-function loadData() {
-  const raw = fs.readFileSync(DATA_FILE)
-  return JSON.parse(raw)
+const client = new MongoClient(uri)
+
+let db
+
+async function conectar(){
+  await client.connect()
+  db = client.db("apuestas")
+  console.log("✅ MongoDB conectado")
 }
 
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
-}
+conectar()
 
 
 /* =========================
    REGISTRO
 ========================= */
-app.post('/register',(req,res)=>{
-  const data = loadData()
-  data.users.push(req.body)
-  saveData(data)
+app.post('/register', async (req,res)=>{
+  await db.collection("users").insertOne(req.body)
   res.send({ok:true})
 })
 
@@ -33,49 +35,41 @@ app.post('/register',(req,res)=>{
 /* =========================
    PARTIDOS
 ========================= */
-app.get('/matches',(req,res)=>{
-  const data = loadData()
-  res.send(data.matches)
+app.get('/matches', async (req,res)=>{
+  const data = await db.collection("matches").find().toArray()
+  res.send(data)
 })
 
-app.post('/admin/match',(req,res)=>{
-  const data = loadData()
+app.post('/admin/match', async (req,res)=>{
 
-  data.matches.push({
+  await db.collection("matches").insertOne({
     id: Date.now(),
     equipo1: req.body.equipo1,
     equipo2: req.body.equipo2,
     limite: req.body.limite,
-    cerrado: false // ✅ IMPORTANTE
+    cerrado:false
   })
 
-  saveData(data)
   res.send({ok:true})
 })
 
-app.post('/admin/cerrar/:id',(req,res)=>{
+app.post('/admin/cerrar/:id', async (req,res)=>{
 
-  const data = loadData()
-  const id = req.params.id
+  await db.collection("matches").updateOne(
+    { id:Number(req.params.id) },
+    { $set:{ cerrado:true } }
+  )
 
-  const match = data.matches.find(m => m.id == id)
-
-  if(match){
-    match.cerrado = true
-  }
-
-  saveData(data)
   res.send({ok:true})
 })
 
-app.delete('/admin/match/:id',(req,res)=>{
-  const data = loadData()
-  const id = req.params.id
+app.delete('/admin/match/:id', async (req,res)=>{
 
-  data.matches = data.matches.filter(m => m.id != id)
-  data.predictions = data.predictions.filter(p => p.matchId != id)
+  const id = Number(req.params.id)
 
-  saveData(data)
+  await db.collection("matches").deleteOne({ id })
+  await db.collection("predictions").deleteMany({ matchId:id })
+
   res.send({ok:true})
 })
 
@@ -83,64 +77,56 @@ app.delete('/admin/match/:id',(req,res)=>{
 /* =========================
    APUESTAS
 ========================= */
-app.post('/predict',(req,res)=>{
+app.post('/predict', async (req,res)=>{
 
-  const data = loadData()
-
-  const match = data.matches.find(m => m.id == req.body.matchId)
+  const match = await db.collection("matches").findOne({
+    id:Number(req.body.matchId)
+  })
 
   if(!match){
     return res.status(400).send({error:"Partido no existe"})
   }
 
-  // ✅ SOLO CIERRE MANUAL
   if(match.cerrado === true){
     return res.status(400).send({error:"Apuestas cerradas"})
   }
 
-  const ya = data.predictions.find(p =>
-    p.telefono === req.body.telefono &&
-    String(p.matchId) === String(req.body.matchId)
-  )
+  const ya = await db.collection("predictions").findOne({
+    telefono:req.body.telefono,
+    matchId:Number(req.body.matchId)
+  })
 
   if(ya){
     return res.status(400).send({error:"Ya apostaste"})
   }
 
-  data.predictions.push({
+  await db.collection("predictions").insertOne({
     ...req.body,
-    matchId: Number(req.body.matchId),
+    matchId:Number(req.body.matchId),
     pagado:false
   })
 
-  saveData(data)
   res.send({ok:true})
 })
 
-app.get('/bets',(req,res)=>{
-  const data = loadData()
-  res.send(data.predictions)
+app.get('/bets', async (req,res)=>{
+  const data = await db.collection("predictions").find().toArray()
+  res.send(data)
 })
 
 
 /* =========================
    PAGOS
 ========================= */
-app.post('/admin/pago',(req,res)=>{
+app.post('/admin/pago', async (req,res)=>{
 
-  const data = loadData()
   const {telefono,matchId} = req.body
 
-  const p = data.predictions.find(x =>
-    x.telefono === telefono &&
-    String(x.matchId) === String(matchId)
+  await db.collection("predictions").updateOne(
+    { telefono, matchId:Number(matchId) },
+    { $set:{ pagado:true } }
   )
 
-  if(p){
-    p.pagado = true
-  }
-
-  saveData(data)
   res.send({ok:true})
 })
 
@@ -148,10 +134,11 @@ app.post('/admin/pago',(req,res)=>{
 /* =========================
    TOTAL GLOBAL
 ========================= */
-app.get('/total',(req,res)=>{
-  const data = loadData()
+app.get('/total', async (req,res)=>{
 
-  const total = data.predictions
+  const data = await db.collection("predictions").find().toArray()
+
+  const total = data
     .filter(p => p.pagado === true)
     .length * 5000
 
@@ -162,17 +149,17 @@ app.get('/total',(req,res)=>{
 /* =========================
    TOTAL POR PARTIDO
 ========================= */
-app.get('/total-by-match',(req,res)=>{
+app.get('/total-by-match', async (req,res)=>{
 
-  const data = loadData()
+  const matches = await db.collection("matches").find().toArray()
+  const predictions = await db.collection("predictions").find().toArray()
 
   let totales = {}
 
-  data.matches.forEach(match => {
+  matches.forEach(match => {
 
-    const apuestas = data.predictions.filter(p =>
-      p.matchId == match.id &&
-      p.pagado === true
+    const apuestas = predictions.filter(p =>
+      p.matchId == match.id && p.pagado === true
     )
 
     totales[match.id] = apuestas.length * 5000
@@ -185,15 +172,16 @@ app.get('/total-by-match',(req,res)=>{
 /* =========================
    RANKING
 ========================= */
-app.get('/top-bets',(req,res)=>{
+app.get('/top-bets', async (req,res)=>{
 
-  const data = loadData()
+  const matches = await db.collection("matches").find().toArray()
+  const predictions = await db.collection("predictions").find().toArray()
 
   let resultado = {}
 
-  data.matches.forEach(match => {
+  matches.forEach(match => {
 
-    const apuestas = data.predictions.filter(p => p.matchId == match.id)
+    const apuestas = predictions.filter(p => p.matchId == match.id)
 
     let conteo = {}
 
@@ -219,15 +207,16 @@ app.get('/top-bets',(req,res)=>{
 /* =========================
    EXPORTAR
 ========================= */
-app.get('/export',(req,res)=>{
+app.get('/export', async (req,res)=>{
 
-  const data = loadData()
+  const predictions = await db.collection("predictions").find().toArray()
+  const matches = await db.collection("matches").find().toArray()
 
   let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
 
-  data.predictions.forEach(p=>{
+  predictions.forEach(p=>{
 
-    const match = data.matches.find(m => m.id == p.matchId)
+    const match = matches.find(m => m.id == p.matchId)
 
     const nombrePartido = match
       ? `${match.equipo1} vs ${match.equipo2}`
@@ -264,5 +253,5 @@ app.post('/admin/login',(req,res)=>{
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, ()=>{
-  console.log("backend listo en puerto", PORT)
+  console.log("🚀 backend listo en puerto", PORT)
 })
