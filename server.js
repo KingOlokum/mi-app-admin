@@ -13,13 +13,28 @@ const uri = "mongodb+srv://andressanchez03_db_user:ClaveApuesta123@cluster0.wdal
 let db
 
 async function start(){
+
   const client = new MongoClient(uri)
   await client.connect()
   db = client.db("apuestas")
 
   console.log("✅ Mongo conectado")
 
-  // ✅ PARTIDOS
+  /* =========================
+     ✅ REGISTER
+  ========================= */
+  app.post('/register', async (req,res)=>{
+    try{
+      await db.collection("users").insertOne(req.body)
+      res.send({ok:true})
+    }catch(e){
+      res.status(500).send({error:"Error registro"})
+    }
+  })
+
+  /* =========================
+     ✅ MATCHES
+  ========================= */
   app.get('/matches', async (req,res)=>{
     const data = await db.collection("matches").find().toArray()
     res.send(data)
@@ -27,7 +42,7 @@ async function start(){
 
   app.post('/admin/match', async (req,res)=>{
     const nuevo = {
-      id: Date.now().toString(), // ✅ STRING
+      id: Date.now().toString(), ✅ // clave
       equipo1: req.body.equipo1,
       equipo2: req.body.equipo2,
       limite: req.body.limite,
@@ -40,7 +55,7 @@ async function start(){
 
   app.post('/admin/cerrar/:id', async (req,res)=>{
     await db.collection("matches").updateOne(
-      { id: req.params.id }, // ✅ STRING
+      { id:req.params.id },
       { $set:{ cerrado:true } }
     )
     res.send({ok:true})
@@ -55,10 +70,12 @@ async function start(){
     res.send({ok:true})
   })
 
-  // ✅ APUESTAS (FIX REAL)
+  /* =========================
+     ✅ APUESTAS
+  ========================= */
   app.post('/predict', async (req,res)=>{
 
-    const id = req.body.matchId // ✅ SIN Number
+    const id = req.body.matchId
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -90,29 +107,11 @@ async function start(){
     res.send({ok:true})
   })
 
-  // ✅ APUESTAS LISTA
   app.get('/bets', async (req,res)=>{
     const data = await db.collection("predictions").find().toArray()
     res.send(data)
   })
 
-  // ✅ TOTALES
-  app.get('/total-by-match', async (req,res)=>{
-
-    const matches = await db.collection("matches").find().toArray()
-    const predictions = await db.collection("predictions").find().toArray()
-
-    let totales = {}
-
-    matches.forEach(m=>{
-      const total = predictions.filter(p=>p.matchId == m.id && p.pagado).length * 5000
-      totales[m.id] = total
-    })
-
-    res.send(totales)
-  })
-
-  // ✅ RANKING
   app.get('/top-bets', async (req,res)=>{
 
     const matches = await db.collection("matches").find().toArray()
@@ -142,7 +141,6 @@ async function start(){
     res.send(resultado)
   })
 
-  // ✅ LOGIN
   app.post('/admin/login',(req,res)=>{
     const {user,pass} = req.body
 
