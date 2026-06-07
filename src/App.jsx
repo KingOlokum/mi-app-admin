@@ -4,23 +4,41 @@ import Player from './Player'
 import Admin from './Admin'
 import AdminLogin from './AdminLogin'
 
+// ✅ URL DEL BACKEND EN RENDER
 const API = "https://mi-app-admin.onrender.com"
 
 
 export default function App(){
 
+  // ✅ controla vista (home / player / admin)
   const [view,setView] = useState("home")
+
+  // ✅ controla login admin
   const [adminOk,setAdminOk] = useState(false)
+
+  // ✅ guarda los partidos
   const [matches,setMatches] = useState([])
 
+
+  // ✅ CARGA LOS PARTIDOS AL INICIAR
   useEffect(()=>{
     axios.get(API + '/matches').then(r=>setMatches(r.data))
   },[])
 
+
+  // ✅ MAPA DE BANDERAS (CLAVE)
+  const countryCodes = {
+    "Colombia": "co",
+    "Uzbekistán": "uz",
+    "RD Congo": "cd",
+    "Portugal": "pt"
+  }
+
+
   return (
     <div>
 
-      {/* HOME */}
+      {/* ✅ PANTALLA PRINCIPAL */}
       {view === "home" && (
         <div style={container}>
 
@@ -37,6 +55,8 @@ export default function App(){
             </div>
           </div>
 
+
+          {/* ✅ MOSTRAR PARTIDOS CREADOS */}
           {matches.map(m => {
 
             const cerrado = new Date(m.limite) < new Date()
@@ -44,16 +64,37 @@ export default function App(){
             return (
               <div key={m.id} style={matchCard}>
 
+                {/* ✅ PARTIDO CON BANDERAS + NOMBRE */}
                 <div style={teams}>
-                  {m.equipo1}
+
+                  {/* Equipo 1 */}
+                  <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
+                    <img 
+                      src={`https://flagcdn.com/w40/${countryCodes[m.equipo1]}.png`}
+                      width="24"
+                    />
+                    <span>{m.equipo1}</span>
+                  </div>
+
                   <span style={vs}>VS</span>
-                  {m.equipo2}
+
+                  {/* Equipo 2 */}
+                  <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
+                    <img 
+                      src={`https://flagcdn.com/w40/${countryCodes[m.equipo2]}.png`}
+                      width="24"
+                    />
+                    <span>{m.equipo2}</span>
+                  </div>
+
                 </div>
 
+                {/* ✅ FECHA */}
                 <div style={date}>
                   {new Date(m.limite).toLocaleString()}
                 </div>
 
+                {/* ✅ ESTADO */}
                 <div style={{
                   marginTop:"6px",
                   color: cerrado ? "#ef4444" : "#22c55e"
@@ -65,6 +106,8 @@ export default function App(){
             )
           })}
 
+
+          {/* ✅ BOTONES */}
           <button style={btn} onClick={()=>setView("player")}>
             Entrar como jugador
           </button>
@@ -76,7 +119,8 @@ export default function App(){
         </div>
       )}
 
-      {/* PLAYER */}
+
+      {/* ✅ PLAYER */}
       {view === "player" && (
         <>
           <button style={backBtn} onClick={()=>setView("home")}>
@@ -87,7 +131,8 @@ export default function App(){
         </>
       )}
 
-      {/* ADMIN */}
+
+      {/* ✅ ADMIN */}
       {view === "admin" && (
         <>
           <button
@@ -112,7 +157,7 @@ export default function App(){
 }
 
 
-// 🎨 ESTILOS OPTIMIZADOS PARA CELULAR
+// 🎨 ESTILOS
 
 const container={
   minHeight:"100vh",
@@ -159,7 +204,7 @@ const teams={
   display:"flex",
   justifyContent:"center",
   alignItems:"center",
-  gap:"6px",
+  gap:"10px",
   fontWeight:"600"
 }
 
@@ -187,7 +232,6 @@ const btn={
   fontSize:"16px"
 }
 
-/* ✅ móvil-friendly */
 const backBtn={
   position:"fixed",
   top:"15px",
