@@ -18,6 +18,7 @@ export default function Admin(){
   const [equipo2,setEquipo2] = useState("")
   const [limite,setLimite] = useState("")
 
+  // ✅ cargar todo al iniciar
   useEffect(()=>{
     cargarTodo()
   },[])
@@ -33,6 +34,7 @@ export default function Admin(){
     setTotal(t.data.total)
   }
 
+  // ✅ crear partido
   const crear = async ()=>{
     if(!equipo1 || !equipo2){
       alert("Selecciona equipos")
@@ -57,23 +59,21 @@ export default function Admin(){
     await cargarTodo()
   }
 
+  // ✅ eliminar partido
   const eliminar = async (id)=>{
     await axios.delete(API + '/admin/match/' + id)
     await cargarTodo()
   }
 
+  // ✅ PAGAR (CORRECTO)
   const pagar = async (telefono,matchId)=>{
     await axios.post(API + '/admin/pago',{
       telefono,
       matchId
     })
 
-    // ✅ FORZAR actualización real
-    const t = await axios.get(API + '/total')
-    setTotal(t.data.total)
-
-    const b = await axios.get(API + '/bets')
-    setBets(b.data)
+    // ✅ recargar TODO (clave)
+    await cargarTodo()
   }
 
   return (
@@ -82,17 +82,27 @@ export default function Admin(){
 
         <h3 style={{textAlign:"center"}}>Panel Admin</h3>
 
-        {/* CREAR */}
-        <select style={input} value={equipo1}
-          onChange={e=>setEquipo1(e.target.value)}>
+        {/* CREAR PARTIDO */}
+        <select
+          style={input}
+          value={equipo1}
+          onChange={e=>setEquipo1(e.target.value)}
+        >
           <option value="">Equipo 1</option>
-          {countries.map(e=><option key={e}>{e}</option>)}
+          {countries.map(e=>(
+            <option key={e}>{e}</option>
+          ))}
         </select>
 
-        <select style={input} value={equipo2}
-          onChange={e=>setEquipo2(e.target.value)}>
+        <select
+          style={input}
+          value={equipo2}
+          onChange={e=>setEquipo2(e.target.value)}
+        >
           <option value="">Equipo 2</option>
-          {countries.map(e=><option key={e}>{e}</option>)}
+          {countries.map(e=>(
+            <option key={e}>{e}</option>
+          ))}
         </select>
 
         <input
@@ -106,7 +116,7 @@ export default function Admin(){
           Crear partido
         </button>
 
-        {/* PARTIDOS */}
+        {/* LISTA DE PARTIDOS */}
         <h4>Partidos</h4>
 
         {matches.map(m=>{
@@ -125,8 +135,10 @@ export default function Admin(){
                 </span>
               </div>
 
-              <button style={deleteBtn}
-                onClick={()=>eliminar(m.id)}>
+              <button
+                style={deleteBtn}
+                onClick={()=>eliminar(m.id)}
+              >
                 Eliminar
               </button>
             </div>
@@ -153,8 +165,10 @@ export default function Admin(){
             {b.pagado ? (
               <span style={{color:"lime"}}>Pagado</span>
             ) : (
-              <button style={btn}
-                onClick={()=>pagar(b.telefono,b.matchId)}>
+              <button
+                style={btn}
+                onClick={()=>pagar(b.telefono,b.matchId)}
+              >
                 Pagar
               </button>
             )}
@@ -162,6 +176,7 @@ export default function Admin(){
           </div>
         ))}
 
+        {/* DESCARGAR EXCEL */}
         <a
           href={API + '/export'}
           style={excelBtn}
@@ -175,7 +190,7 @@ export default function Admin(){
 }
 
 
-// estilos
+// ESTILOS
 
 const wrap={
   minHeight:"100vh",
@@ -218,7 +233,8 @@ const box={
   padding:"10px",
   borderRadius:"10px",
   display:"flex",
-  justifyContent:"space-between"
+  justifyContent:"space-between",
+  alignItems:"center"
 }
 
 const deleteBtn={
