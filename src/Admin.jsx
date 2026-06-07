@@ -22,21 +22,18 @@ export default function Admin(){
     cargarTodo()
   },[])
 
-  // Cargar todo
   const cargarTodo = async ()=>{
-    const matchesRes = await axios.get(API + '/matches')
-    setMatches(matchesRes.data)
+    const r = await axios.get(API + '/matches')
+    setMatches(r.data)
 
-    const betsRes = await axios.get(API + '/bets')
-    setBets(betsRes.data)
+    const b = await axios.get(API + '/bets')
+    setBets(b.data)
 
-    const totalRes = await axios.get(API + '/total')
-    setTotal(totalRes.data.total)
+    const t = await axios.get(API + '/total')
+    setTotal(t.data.total)
   }
 
-  // Crear partido
   const crear = async ()=>{
-
     if(!equipo1 || !equipo2){
       alert("Selecciona equipos")
       return
@@ -57,23 +54,26 @@ export default function Admin(){
     setEquipo2("")
     setLimite("")
 
-    cargarTodo()
+    await cargarTodo()
   }
 
-  // Eliminar partido
   const eliminar = async (id)=>{
     await axios.delete(API + '/admin/match/' + id)
-    cargarTodo()
+    await cargarTodo()
   }
 
-  // Marcar pago
   const pagar = async (telefono,matchId)=>{
     await axios.post(API + '/admin/pago',{
       telefono,
       matchId
     })
 
-    await cargarTodo() // IMPORTANTE
+    // ✅ FORZAR actualización real
+    const t = await axios.get(API + '/total')
+    setTotal(t.data.total)
+
+    const b = await axios.get(API + '/bets')
+    setBets(b.data)
   }
 
   return (
@@ -82,27 +82,17 @@ export default function Admin(){
 
         <h3 style={{textAlign:"center"}}>Panel Admin</h3>
 
-        {/* CREAR PARTIDO */}
-        <select
-          style={input}
-          value={equipo1}
-          onChange={e=>setEquipo1(e.target.value)}
-        >
+        {/* CREAR */}
+        <select style={input} value={equipo1}
+          onChange={e=>setEquipo1(e.target.value)}>
           <option value="">Equipo 1</option>
-          {countries.map(e=>(
-            <option key={e}>{e}</option>
-          ))}
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
-        <select
-          style={input}
-          value={equipo2}
-          onChange={e=>setEquipo2(e.target.value)}
-        >
+        <select style={input} value={equipo2}
+          onChange={e=>setEquipo2(e.target.value)}>
           <option value="">Equipo 2</option>
-          {countries.map(e=>(
-            <option key={e}>{e}</option>
-          ))}
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
         <input
@@ -130,15 +120,13 @@ export default function Admin(){
                 <br/>
                 <small>{new Date(m.limite).toLocaleString()}</small>
                 <br/>
-                <span style={{color: cerrado ? "red" : "green"}}>
-                  {cerrado ? "Cerrado" : "Abierto"}
+                <span style={{color: cerrado ? "red":"green"}}>
+                  {cerrado ? "Cerrado":"Abierto"}
                 </span>
               </div>
 
-              <button
-                style={deleteBtn}
-                onClick={()=>eliminar(m.id)}
-              >
+              <button style={deleteBtn}
+                onClick={()=>eliminar(m.id)}>
                 Eliminar
               </button>
             </div>
@@ -163,14 +151,10 @@ export default function Admin(){
             </div>
 
             {b.pagado ? (
-              <span style={{color:"lime"}}>
-                Pagado
-              </span>
+              <span style={{color:"lime"}}>Pagado</span>
             ) : (
-              <button
-                style={btn}
-                onClick={()=>pagar(b.telefono,b.matchId)}
-              >
+              <button style={btn}
+                onClick={()=>pagar(b.telefono,b.matchId)}>
                 Pagar
               </button>
             )}
@@ -178,9 +162,8 @@ export default function Admin(){
           </div>
         ))}
 
-        {/* EXCEL */}
         <a
-          href={API + "/export"}
+          href={API + '/export'}
           style={excelBtn}
         >
           Descargar Excel
@@ -192,7 +175,7 @@ export default function Admin(){
 }
 
 
-// ESTILOS
+// estilos
 
 const wrap={
   minHeight:"100vh",
@@ -235,8 +218,7 @@ const box={
   padding:"10px",
   borderRadius:"10px",
   display:"flex",
-  justifyContent:"space-between",
-  alignItems:"center"
+  justifyContent:"space-between"
 }
 
 const deleteBtn={
