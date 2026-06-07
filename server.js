@@ -4,27 +4,23 @@ import fs from 'fs'
 
 const app = express()
 
-app.use(cors({
-  origin: "*"
-}))
-
+app.use(cors({ origin: "*" }))
 app.use(express.json())
 
-// archivo de datos
 const DATA_FILE = './data.json'
 
-// cargar datos
+// cargar
 function loadData() {
   const raw = fs.readFileSync(DATA_FILE)
   return JSON.parse(raw)
 }
 
-// guardar datos
+// guardar
 function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
 }
 
-// inicializar
+// iniciar
 let { users, matches, predictions } = loadData()
 
 
@@ -36,14 +32,16 @@ app.post('/register',(req,res)=>{
 })
 
 
-// VER PARTIDOS
+// PARTIDOS
 app.get('/matches',(req,res)=>{
-  res.send(matches)
+  const data = loadData()
+  res.send(data.matches)
 })
 
 
 // CREAR PARTIDO
 app.post('/admin/match',(req,res)=>{
+
   matches.push({
     id: Date.now(),
     equipo1: req.body.equipo1,
@@ -52,6 +50,7 @@ app.post('/admin/match',(req,res)=>{
   })
 
   saveData({ users, matches, predictions })
+
   res.send({ok:true})
 })
 
@@ -73,7 +72,9 @@ app.delete('/admin/match/:id',(req,res)=>{
 // HACER APUESTA
 app.post('/predict',(req,res)=>{
 
-  const match = matches.find(m => m.id == req.body.matchId)
+  const data = loadData()
+
+  const match = data.matches.find(m => m.id == req.body.matchId)
 
   if(!match){
     return res.status(400).send({error:"Partido no existe"})
@@ -83,7 +84,7 @@ app.post('/predict',(req,res)=>{
     return res.status(400).send({error:"Apuestas cerradas"})
   }
 
-  const ya = predictions.find(p =>
+  const ya = data.predictions.find(p =>
     p.telefono === req.body.telefono &&
     String(p.matchId) === String(req.body.matchId)
   )
@@ -92,32 +93,69 @@ app.post('/predict',(req,res)=>{
     return res.status(400).send({error:"Ya apostaste"})
   }
 
-  predictions.push({
+  data.predictions.push({
     ...req.body,
     matchId: Number(req.body.matchId),
-    pagado:false
+    pagado: false
   })
 
-  saveData({ users, matches, predictions })
+  saveData(data)
 
   res.send({ok:true})
 })
 
 
-// VER APUESTAS
+// VER APUESTAS ✅ (CORREGIDO)
 app.get('/bets',(req,res)=>{
-  res.send(predictions)
+  const data = loadData()
+  res.send(data.predictions)
+})
+
+
+// PAGOS ✅ (CORREGIDO)
+app.post('/admin/pago',(req,res)=>{
+
+  const data = loadData()
+  const {telefono,matchId} = req.body
+
+  const p = data.predictions.find(x =>
+    x.telefono === telefono &&
+    String(x.matchId) === String(matchId)
+  )
+
+  if(p){
+    p.pagado = true
+  }
+
+  saveData(data)
+
+  res.send({ok:true})
+})
+
+
+// ✅ ✅ ✅ TOTAL CORRECTO
+app.get('/total',(req,res)=>{
+
+  const data = loadData()
+
+  const total = data.predictions
+    .filter(p => p.pagado === true)
+    .length * 5000
+
+  res.send({total})
 })
 
 
 // RANKING
 app.get('/top-bets',(req,res)=>{
 
+  const data = loadData()
+
   let resultado = {}
 
-  matches.forEach(match => {
+  data.matches.forEach(match => {
 
-    const apuestas = predictions.filter(p => p.matchId == match.id)
+    const apuestas = data.predictions.filter(p => p.matchId == match.id)
 
     let conteo = {}
 
@@ -137,40 +175,6 @@ app.get('/top-bets',(req,res)=>{
   })
 
   res.send(resultado)
-})
-
-
-// PAGOS (ARREGLADO ✅)
-app.post('/admin/pago',(req,res)=>{
-
-  const {telefono,matchId} = req.body
-
-  const p = predictions.find(x =>
-    x.telefono === telefono &&
-    String(x.matchId) === String(matchId)
-  )
-
-  if(p){
-    p.pagado = true
-  }
-
-  saveData({ users, matches, predictions })
-
-  res.send({ok:true})
-})
-
-
-// ✅✅✅ TOTAL CORREGIDO (CLAVE)
-app.get('/total',(req,res)=>{
-
-  // leer siempre datos reales del archivo
-  const data = loadData()
-
-  const total = data.predictions
-    .filter(p => p.pagado === true)
-    .length * 5000
-
-  res.send({total})
 })
 
 
