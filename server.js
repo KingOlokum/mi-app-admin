@@ -10,7 +10,7 @@ app.use(cors({
 
 app.use(express.json())
 
-// ✅ archivo de datos
+// ✅ archivo donde se guardan datos
 const DATA_FILE = './data.json'
 
 // ✅ cargar datos
@@ -24,7 +24,7 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
 }
 
-// ✅ iniciar datos
+// ✅ inicializar datos
 let { users, matches, predictions } = loadData()
 
 
@@ -36,7 +36,7 @@ app.post('/register',(req,res)=>{
 })
 
 
-// ✅ PARTIDOS
+// ✅ VER PARTIDOS
 app.get('/matches',(req,res)=>{
   res.send(matches)
 })
@@ -171,19 +171,38 @@ app.get('/total',(req,res)=>{
 })
 
 
-// ✅ EXPORTAR
+// ✅ ✅ ✅ EXPORTAR A EXCEL (ARREGLADO)
 app.get('/export',(req,res)=>{
 
   let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
 
   predictions.forEach(p=>{
-    csv += `${p.usuario};${p.telefono};${p.matchId};${p.resultado};${p.pagado}\n`
+
+    // ✅ buscar el partido
+    const match = matches.find(m => m.id == p.matchId)
+
+    // ✅ nombre limpio
+    const nombrePartido = match
+      ? `${match.equipo1} vs ${match.equipo2}`
+      : "Partido eliminado"
+
+    // ✅ forzar texto para Excel
+    csv += `"${p.usuario}";"${p.telefono}";"${nombrePartido}";"'${p.resultado}'";"${p.pagado}"\n`
   })
 
-  res.setHeader("Content-Type","text/csv")
-  res.setHeader("Content-Disposition","attachment; filename=quiniela.csv")
+  // ✅ encoding correcto para Excel
+  res.setHeader(
+    "Content-Type",
+    "text/csv; charset=utf-8"
+  )
 
-  res.send(csv)
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=quiniela.csv"
+  )
+
+  // ✅ BOM (corrige Excel)
+  res.send("\uFEFF" + csv)
 })
 
 
@@ -201,7 +220,7 @@ app.post('/admin/login',(req,res)=>{
 })
 
 
-// ✅ PUERTO
+// ✅ PUERTO (RENDER)
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, ()=>{
