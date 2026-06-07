@@ -20,7 +20,6 @@ export default function Admin(){
     "RD Congo","Jordania"
   ]
 
-  // ✅ cargar todo
   useEffect(()=>{
     cargarTodo()
   },[])
@@ -37,7 +36,6 @@ export default function Admin(){
     }
   }
 
-  // ✅ crear partido
   const crear = async ()=>{
     if(!form.equipo1 || !form.equipo2){
       alert("Selecciona equipos")
@@ -55,13 +53,11 @@ export default function Admin(){
     cargarTodo()
   }
 
-  // ✅ cerrar
   const cerrar = async (id)=>{
     await axios.post(API+"/admin/cerrar/"+id)
     cargarTodo()
   }
 
-  // ✅ borrar
   const borrar = async (id)=>{
     await axios.delete(API+"/admin/match/"+id)
     cargarTodo()
@@ -74,7 +70,6 @@ export default function Admin(){
 
         <h2>Panel de administración</h2>
 
-        {/* ✅ FORM PARTIDOS */}
         <select
           style={input}
           value={form.equipo1}
@@ -108,25 +103,16 @@ export default function Admin(){
           Crear partido
         </button>
 
-        {/* ✅ PARTIDOS */}
         <h3 style={{marginTop:20}}>Partidos</h3>
 
         {matches.map(m=>(
           <div key={m.id} style={box}>
 
-            <div style={{fontWeight:"600"}}>
-              {m.equipo1} vs {m.equipo2}
-            </div>
+            <div>{m.equipo1} vs {m.equipo2}</div>
 
-            <div style={{fontSize:"12px"}}>
-              {new Date(m.limite).toLocaleString()}
-            </div>
+            <div>{m.cerrado ? "Cerrado ❌" : "Disponible ✅"}</div>
 
-            <div style={{marginTop:"6px"}}>
-              {m.cerrado ? "Cerrado ❌" : "Disponible ✅"}
-            </div>
-
-            <div style={{display:"flex",gap:"8px",marginTop:"8px"}}>
+            <div style={{marginTop:8}}>
 
               <button style={btnSmall} onClick={()=>cerrar(m.id)}>
                 Cerrar
@@ -141,7 +127,6 @@ export default function Admin(){
           </div>
         ))}
 
-        {/* ✅ APUESTAS */}
         <h3 style={{marginTop:20}}>Apuestas</h3>
 
         {bets.map((b,i)=>(
@@ -151,11 +136,6 @@ export default function Admin(){
             <div>{b.resultado}</div>
           </div>
         ))}
-
-        {/* ✅ EXPORT */}
-        <a href={API+"/export"} target="_blank">
-          <button style={btnGreen}>Descargar Excel</button>
-        </a>
 
       </div>
     </div>
@@ -194,17 +174,14 @@ const btn={
   borderRadius:"10px",
   border:"none",
   background:"#0284c7",
-  color:"#fff",
-  cursor:"pointer"
+  color:"#fff"
 }
 
 const btnSmall={
   padding:"6px 10px",
   border:"none",
   borderRadius:"6px",
-  background:"#facc15",
-  color:"#000",
-  cursor:"pointer"
+  background:"#facc15"
 }
 
 const btnDanger={
@@ -212,18 +189,7 @@ const btnDanger={
   border:"none",
   borderRadius:"6px",
   background:"#ef4444",
-  color:"#fff",
-  cursor:"pointer"
-}
-
-const btnGreen={
-  marginTop:"10px",
-  padding:"10px",
-  border:"none",
-  borderRadius:"10px",
-  background:"#22c55e",
-  color:"#fff",
-  cursor:"pointer"
+  color:"#fff"
 }
 
 const box={
@@ -235,6 +201,5 @@ const box={
 const betBox={
   background:"#020617",
   padding:"8px",
-  borderRadius:"8px",
-  fontSize:"12px"
+  borderRadius:"8px"
 }
