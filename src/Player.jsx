@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-
 const API = "https://mi-app-admin.onrender.com"
 
 export default function Player(){
@@ -38,13 +37,13 @@ export default function Player(){
     const local = inputs[id]?.local
     const visitante = inputs[id]?.visitante
 
-    // ✅ VALIDACIÓN FUERTE
-    if(local === undefined || visitante === undefined){
+    // ✅ VALIDACIÓN CORRECTA
+    if(local === "" || visitante === "" || local === undefined || visitante === undefined){
       alert("Completa ambos marcadores")
       return
     }
 
-    if(local < 0 || visitante < 0){
+    if(Number(local) < 0 || Number(visitante) < 0){
       alert("Los goles no pueden ser negativos")
       return
     }
@@ -111,19 +110,20 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {/* ✅ INPUTS SIN NEGATIVOS */}
+              {/* ✅ INPUTS CORREGIDOS */}
               <div style={scoreBox}>
 
                 <input
                   type="number"
                   min="0"
-                  style={scoreInput}
                   placeholder="0"
+                  value={inputs[m.id]?.local ?? ""} // ✅ CLAVE
+                  style={scoreInput}
                   onChange={e=>setInputs({
                     ...inputs,
                     [m.id]: {
                       ...inputs[m.id],
-                      local: Number(e.target.value)
+                      local: e.target.value // ✅ SIN Number()
                     }
                   })}
                 />
@@ -133,13 +133,14 @@ export default function Player(){
                 <input
                   type="number"
                   min="0"
-                  style={scoreInput}
                   placeholder="0"
+                  value={inputs[m.id]?.visitante ?? ""} // ✅ CLAVE
+                  style={scoreInput}
                   onChange={e=>setInputs({
                     ...inputs,
                     [m.id]: {
                       ...inputs[m.id],
-                      visitante: Number(e.target.value)
+                      visitante: e.target.value // ✅ SIN Number()
                     }
                   })}
                 />
@@ -195,7 +196,7 @@ export default function Player(){
 }
 
 
-// 🎨 ESTILO
+// 🎨 ESTILOS (SIN CAMBIOS)
 
 const wrap={
   minHeight:"100vh",
