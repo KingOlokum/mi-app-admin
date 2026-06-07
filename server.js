@@ -1,24 +1,37 @@
 import express from 'express'
 import cors from 'cors'
+import fs from 'fs'
 
 const app = express()
 
-// ✅ CORS para producción (Vercel → Render)
 app.use(cors({
   origin: "*"
 }))
 
 app.use(express.json())
 
-// ✅ datos en memoria
-let users = []
-let matches = []
-let predictions = []
+// ✅ archivo de datos
+const DATA_FILE = './data.json'
+
+// ✅ cargar datos
+function loadData() {
+  const raw = fs.readFileSync(DATA_FILE)
+  return JSON.parse(raw)
+}
+
+// ✅ guardar datos
+function saveData(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+}
+
+// ✅ iniciar datos
+let { users, matches, predictions } = loadData()
 
 
 // ✅ REGISTRO
 app.post('/register',(req,res)=>{
   users.push(req.body)
+  saveData({ users, matches, predictions })
   res.send({ok:true})
 })
 
@@ -37,18 +50,22 @@ app.post('/admin/match',(req,res)=>{
     equipo2: req.body.equipo2,
     limite: req.body.limite
   })
+
+  saveData({ users, matches, predictions })
+
   res.send({ok:true})
 })
 
 
 // ✅ ELIMINAR PARTIDO
 app.delete('/admin/match/:id',(req,res)=>{
+
   const id = req.params.id
 
-  matches = matches.filter(m=>m.id != id)
+  matches = matches.filter(m => m.id != id)
+  predictions = predictions.filter(p => p.matchId != id)
 
-  // borrar apuestas relacionadas
-  predictions = predictions.filter(p=>p.matchId != id)
+  saveData({ users, matches, predictions })
 
   res.send({ok:true})
 })
@@ -81,6 +98,8 @@ app.post('/predict',(req,res)=>{
     pagado:false
   })
 
+  saveData({ users, matches, predictions })
+
   res.send({ok:true})
 })
 
@@ -91,7 +110,7 @@ app.get('/bets',(req,res)=>{
 })
 
 
-// ✅ ✅ ✅ RANKING
+// ✅ RANKING
 app.get('/top-bets',(req,res)=>{
 
   let resultado = {}
@@ -135,6 +154,8 @@ app.post('/admin/pago',(req,res)=>{
     p.pagado = true
   }
 
+  saveData({ users, matches, predictions })
+
   res.send({ok:true})
 })
 
@@ -169,9 +190,6 @@ app.get('/export',(req,res)=>{
 // ✅ LOGIN ADMIN
 app.post('/admin/login',(req,res)=>{
 
-  // DEBUG (puedes dejarlo)
-  console.log("LOGIN:", req.body)
-
   const user = req.body.user
   const pass = req.body.pass
 
@@ -183,7 +201,7 @@ app.post('/admin/login',(req,res)=>{
 })
 
 
-// ✅ ✅ ✅ PUERTO CORRECTO PARA RENDER
+// ✅ PUERTO
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, ()=>{
