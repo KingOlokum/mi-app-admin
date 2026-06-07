@@ -65,6 +65,12 @@ export default function Admin(){
     await cargarTodo()
   }
 
+  // ✅ NUEVO: cerrar partido manual
+  const cerrar = async (id)=>{
+    await axios.post(API + '/admin/cerrar/' + id)
+    await cargarTodo()
+  }
+
   return (
     <div style={wrap}>
       <div style={card}>
@@ -105,7 +111,8 @@ export default function Admin(){
         <h4>Partidos</h4>
 
         {matches.map(m=>{
-          const cerrado = new Date(m.limite) < new Date()
+
+          const cerrado = m.cerrado === true
 
           return (
             <div key={m.id} style={box}>
@@ -119,10 +126,24 @@ export default function Admin(){
                 </span>
               </div>
 
-              <button style={deleteBtn}
-                onClick={()=>eliminar(m.id)}>
-                Eliminar
-              </button>
+              <div style={{display:"flex", gap:"5px"}}>
+                
+                {/* ✅ botón cerrar */}
+                {!cerrado && (
+                  <button
+                    style={{background:"orange", color:"#fff"}}
+                    onClick={()=>cerrar(m.id)}
+                  >
+                    Cerrar
+                  </button>
+                )}
+
+                <button style={deleteBtn}
+                  onClick={()=>eliminar(m.id)}>
+                  Eliminar
+                </button>
+
+              </div>
             </div>
           )
         })}
@@ -162,7 +183,7 @@ export default function Admin(){
 }
 
 
-// estilos
+// estilos (sin cambios)
 
 const wrap={
   minHeight:"100vh",

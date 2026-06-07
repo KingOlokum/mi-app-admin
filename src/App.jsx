@@ -69,7 +69,8 @@ export default function App(){
 
           {matches.map(m => {
 
-            const cerrado = new Date(m.limite) < new Date()
+            // ✅ AHORA el estado depende SOLO del backend
+            const cerrado = m.cerrado === true
 
             return (
               <div key={m.id} style={matchCard}>
@@ -78,7 +79,8 @@ export default function App(){
 
                   {/* ✅ EQUIPO 1 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
-                    .png`}
+                    <img
+                      src={`https://flagcdn.com/w40/${getFlag(m.equipo1)}.png`}
                       width="24"
                     />
                     <span>{m.equipo1}</span>
@@ -88,7 +90,8 @@ export default function App(){
 
                   {/* ✅ EQUIPO 2 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
-                    .png`}
+                    <img
+                      src={`https://flagcdn.com/w40/${getFlag(m.equipo2)}.png`}
                       width="24"
                     />
                     <span>{m.equipo2}</span>
@@ -100,6 +103,7 @@ export default function App(){
                   {new Date(m.limite).toLocaleString()}
                 </div>
 
+                {/* ✅ ESTADO REAL */}
                 <div style={{
                   marginTop:"6px",
                   color: cerrado ? "#ef4444" : "#22c55e"
@@ -107,7 +111,7 @@ export default function App(){
                   {cerrado ? "Cerrado" : "Disponible"}
                 </div>
 
-                {/* ✅ TOTAL ACUMULADO */}
+                {/* ✅ TOTAL */}
                 <div style={{
                   marginTop:"6px",
                   fontSize:"14px",
@@ -165,7 +169,7 @@ export default function App(){
 }
 
 
-// estilos
+// estilos (los tuyos sin cambiar)
 
 const container={
   minHeight:"100vh",
@@ -178,14 +182,9 @@ const container={
   color:"#fff"
 }
 
-const title={
-  fontSize:"26px",
-  fontWeight:"700"
-}
+const title={ fontSize:"26px", fontWeight:"700" }
 
-const subtitle={
-  color:"#94a3b8"
-}
+const subtitle={ color:"#94a3b8" }
 
 const pagoBox={
   background:"#166534",

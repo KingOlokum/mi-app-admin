@@ -25,10 +25,8 @@ export default function Player(){
     }
   },[step])
 
-  // ✅ LOGIN / REGISTRO CON VALIDACIÓN
   const entrar = async ()=>{
 
-    // ✅ VALIDACIÓN TELÉFONO
     if(form.telefono.length !== 10){
       alert("El teléfono debe tener 10 dígitos")
       return
@@ -43,7 +41,15 @@ export default function Player(){
     setStep("apuestas")
   }
 
+  // ✅ PROTECCIÓN REAL
   const apostar = async (id)=>{
+
+    const match = matches.find(m => m.id === id)
+
+    if(match?.cerrado){
+      alert("Este partido está cerrado")
+      return
+    }
 
     const local = inputs[id]?.local
     const visitante = inputs[id]?.visitante
@@ -83,7 +89,6 @@ export default function Player(){
       <div style={wrap}>
         <div style={card}>
 
-          {/* ✅ NOMBRE */}
           <input
             style={input}
             placeholder="Nombre"
@@ -94,7 +99,6 @@ export default function Player(){
             }}
           />
 
-          {/* ✅ APELLIDO */}
           <input
             style={input}
             placeholder="Apellido"
@@ -105,20 +109,14 @@ export default function Player(){
             }}
           />
 
-          {/* ✅ TELÉFONO */}
           <input
             style={input}
             placeholder="3001234567"
             maxLength={10}
             value={form.telefono}
             onChange={e=>{
-
               let valor = e.target.value.replace(/\D/g,"")
-
-              if(valor.length > 10){
-                valor = valor.slice(0,10)
-              }
-
+              if(valor.length > 10) valor = valor.slice(0,10)
               setForm({...form,telefono:valor})
             }}
           />
@@ -140,15 +138,26 @@ export default function Player(){
 
         {matches.map(m=>{
 
+          const cerrado = m.cerrado === true
           const top = ranking[m.id] || []
           const total = top.reduce((acc,r)=>acc+r.cantidad,0)
 
           return (
-            <div key={m.id} style={box}>
+            <div key={m.id} style={{
+              ...box,
+              opacity: cerrado ? 0.6 : 1
+            }}>
 
               <div style={teams}>
                 {m.equipo1} VS {m.equipo2}
               </div>
+
+              {/* ✅ MENSAJE VISUAL */}
+              {cerrado && (
+                <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
+                  Apuestas cerradas
+                </div>
+              )}
 
               <div style={scoreBox}>
 
@@ -156,6 +165,7 @@ export default function Player(){
                   type="number"
                   min="0"
                   placeholder="0"
+                  disabled={cerrado}
                   value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -173,6 +183,7 @@ export default function Player(){
                   type="number"
                   min="0"
                   placeholder="0"
+                  disabled={cerrado}
                   value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -186,7 +197,15 @@ export default function Player(){
 
               </div>
 
-              <button style={btn} onClick={()=>apostar(m.id)}>
+              <button
+                style={{
+                  ...btn,
+                  background: cerrado ? "#64748b" : "#0284c7",
+                  cursor: cerrado ? "not-allowed" : "pointer"
+                }}
+                disabled={cerrado}
+                onClick={()=>apostar(m.id)}
+              >
                 Apostar
               </button>
 
@@ -232,82 +251,4 @@ export default function Player(){
       </div>
     </div>
   )
-}
-
-
-// estilos
-
-const wrap={
-  minHeight:"100vh",
-  display:"flex",
-  justifyContent:"center",
-  paddingTop:"80px",
-  background:"#020617"
-}
-
-const card={
-  background:"#0f172a",
-  padding:"25px",
-  borderRadius:"16px",
-  width:"360px",
-  color:"#fff",
-  display:"flex",
-  flexDirection:"column",
-  gap:"15px"
-}
-
-const box={
-  background:"#1e293b",
-  padding:"15px",
-  borderRadius:"12px",
-  display:"flex",
-  flexDirection:"column",
-  gap:"10px"
-}
-
-const teams={
-  textAlign:"center",
-  fontWeight:"700"
-}
-
-const scoreBox={
-  display:"flex",
-  justifyContent:"center",
-  alignItems:"center",
-  gap:"10px"
-}
-
-const scoreInput={
-  width:"60px",
-  padding:"10px",
-  textAlign:"center",
-  borderRadius:"8px",
-  border:"1px solid #334155",
-  background:"#020617",
-  color:"#fff"
-}
-
-const input={
-  padding:"10px",
-  borderRadius:"8px",
-  border:"1px solid #334155",
-  background:"#020617",
-  color:"#fff"
-}
-
-const btn={
-  padding:"10px",
-  borderRadius:"10px",
-  border:"none",
-  background:"#0284c7",
-  color:"#fff",
-  cursor:"pointer"
-}
-
-const barBg={
-  height:"6px",
-  background:"#334155",
-  borderRadius:"6px",
-  overflow:"hidden",
-  marginTop:"4px"
 }
