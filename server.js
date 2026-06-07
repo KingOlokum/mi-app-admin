@@ -8,7 +8,8 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 3001
 
-const uri = "mongodb+srv://andressanchez03_db_user:ixmqPLWkTWBnSztxX@cluster0.wdalzh5.mongodb.net/apuestas?retryWrites=true&w=majority"
+const uri = "mongodb+srv://andressanchez03_db_user:ClaveApuesta123@cluster0.wdalzh5.mongodb.net/apuestas?retryWrites=true&w=majority"
+
 
 let db
 
