@@ -43,7 +43,8 @@ export default function Player(){
 
   const apostar = async (id)=>{
 
-    const match = matches.find(m => m.id === id)
+    // ✅ FIX IMPORTANTE
+    const match = matches.find(m => String(m.id) === String(id))
 
     // ✅ SOLO bloquea si está cerrado
     if(match && match.cerrado === true){
@@ -136,7 +137,7 @@ export default function Player(){
 
         {matches.map(m=>{
 
-          const cerrado = m.cerrado === true
+          const cerrado = m.cerrado ? true : false
           const top = ranking[m.id] || []
           const total = top.reduce((acc,r)=>acc+r.cantidad,0)
 
@@ -147,7 +148,6 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {/* ✅ SOLO MENSAJE, NO BLOQUEA INPUT */}
               {cerrado && (
                 <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
                   Apuestas cerradas
@@ -190,45 +190,12 @@ export default function Player(){
 
               </div>
 
-              {/* ✅ BOTÓN SOLO BLOQUEA EL ENVÍO */}
               <button
                 style={btn}
                 onClick={()=>apostar(m.id)}
               >
                 Apostar
               </button>
-
-              <div style={{marginTop:10}}>
-                {top.map((r,i)=>{
-
-                  const porcentaje = total
-                    ? Math.round((r.cantidad/total)*100)
-                    : 0
-
-                  return (
-                    <div key={i} style={{marginBottom:8}}>
-
-                      <div style={{
-                        display:"flex",
-                        justifyContent:"space-between",
-                        fontSize:12
-                      }}>
-                        <span>{r.resultado}</span>
-                        <span>{porcentaje}%</span>
-                      </div>
-
-                      <div style={barBg}>
-                        <div style={{
-                          width:`${porcentaje}%`,
-                          height:"100%",
-                          background:"#facc15"
-                        }}></div>
-                      </div>
-
-                    </div>
-                  )
-                })}
-              </div>
 
             </div>
           )
