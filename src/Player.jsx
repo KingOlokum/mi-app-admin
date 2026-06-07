@@ -41,12 +41,12 @@ export default function Player(){
     setStep("apuestas")
   }
 
-  // ✅ PROTECCIÓN REAL
   const apostar = async (id)=>{
 
     const match = matches.find(m => m.id === id)
 
-    if(match?.cerrado){
+    // ✅ SOLO bloquea si está cerrado
+    if(match && match.cerrado === true){
       alert("Este partido está cerrado")
       return
     }
@@ -88,7 +88,6 @@ export default function Player(){
     return (
       <div style={wrap}>
         <div style={card}>
-
           <input
             style={input}
             placeholder="Nombre"
@@ -124,7 +123,6 @@ export default function Player(){
           <button style={btn} onClick={entrar}>
             Entrar
           </button>
-
         </div>
       </div>
     )
@@ -143,16 +141,13 @@ export default function Player(){
           const total = top.reduce((acc,r)=>acc+r.cantidad,0)
 
           return (
-            <div key={m.id} style={{
-              ...box,
-              opacity: cerrado ? 0.6 : 1
-            }}>
+            <div key={m.id} style={box}>
 
               <div style={teams}>
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {/* ✅ MENSAJE VISUAL */}
+              {/* ✅ SOLO MENSAJE, NO BLOQUEA INPUT */}
               {cerrado && (
                 <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
                   Apuestas cerradas
@@ -165,7 +160,6 @@ export default function Player(){
                   type="number"
                   min="0"
                   placeholder="0"
-                  disabled={cerrado}
                   value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -183,7 +177,6 @@ export default function Player(){
                   type="number"
                   min="0"
                   placeholder="0"
-                  disabled={cerrado}
                   value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -197,21 +190,15 @@ export default function Player(){
 
               </div>
 
+              {/* ✅ BOTÓN SOLO BLOQUEA EL ENVÍO */}
               <button
-                style={{
-                  ...btn,
-                  background: cerrado ? "#64748b" : "#0284c7",
-                  cursor: cerrado ? "not-allowed" : "pointer"
-                }}
-                disabled={cerrado}
+                style={btn}
                 onClick={()=>apostar(m.id)}
               >
                 Apostar
               </button>
 
-              {/* RANKING */}
               <div style={{marginTop:10}}>
-
                 {top.map((r,i)=>{
 
                   const porcentaje = total
@@ -241,7 +228,6 @@ export default function Player(){
                     </div>
                   )
                 })}
-
               </div>
 
             </div>
