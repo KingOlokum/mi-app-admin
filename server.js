@@ -10,25 +10,25 @@ app.use(cors({
 
 app.use(express.json())
 
-// ✅ archivo donde se guardan datos
+// archivo de datos
 const DATA_FILE = './data.json'
 
-// ✅ cargar datos
+// cargar datos
 function loadData() {
   const raw = fs.readFileSync(DATA_FILE)
   return JSON.parse(raw)
 }
 
-// ✅ guardar datos
+// guardar datos
 function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
 }
 
-// ✅ inicializar datos
+// inicializar
 let { users, matches, predictions } = loadData()
 
 
-// ✅ REGISTRO
+// REGISTRO
 app.post('/register',(req,res)=>{
   users.push(req.body)
   saveData({ users, matches, predictions })
@@ -36,13 +36,13 @@ app.post('/register',(req,res)=>{
 })
 
 
-// ✅ VER PARTIDOS
+// VER PARTIDOS
 app.get('/matches',(req,res)=>{
   res.send(matches)
 })
 
 
-// ✅ CREAR PARTIDO
+// CREAR PARTIDO
 app.post('/admin/match',(req,res)=>{
   matches.push({
     id: Date.now(),
@@ -57,7 +57,7 @@ app.post('/admin/match',(req,res)=>{
 })
 
 
-// ✅ ELIMINAR PARTIDO
+// ELIMINAR PARTIDO
 app.delete('/admin/match/:id',(req,res)=>{
 
   const id = req.params.id
@@ -71,7 +71,7 @@ app.delete('/admin/match/:id',(req,res)=>{
 })
 
 
-// ✅ HACER APUESTA
+// HACER APUESTA
 app.post('/predict',(req,res)=>{
 
   const match = matches.find(m => m.id == req.body.matchId)
@@ -86,7 +86,7 @@ app.post('/predict',(req,res)=>{
 
   const ya = predictions.find(p =>
     p.telefono === req.body.telefono &&
-    p.matchId == req.body.matchId
+    String(p.matchId) === String(req.body.matchId)
   )
 
   if(ya){
@@ -95,6 +95,7 @@ app.post('/predict',(req,res)=>{
 
   predictions.push({
     ...req.body,
+    matchId: Number(req.body.matchId),
     pagado:false
   })
 
@@ -104,13 +105,13 @@ app.post('/predict',(req,res)=>{
 })
 
 
-// ✅ VER APUESTAS
+// VER APUESTAS
 app.get('/bets',(req,res)=>{
   res.send(predictions)
 })
 
 
-// ✅ RANKING
+// RANKING
 app.get('/top-bets',(req,res)=>{
 
   let resultado = {}
@@ -140,14 +141,14 @@ app.get('/top-bets',(req,res)=>{
 })
 
 
-// ✅ PAGOS
+// PAGOS (ARREGLADO ✅)
 app.post('/admin/pago',(req,res)=>{
 
   const {telefono,matchId} = req.body
 
   const p = predictions.find(x =>
     x.telefono === telefono &&
-    x.matchId == matchId
+    String(x.matchId) === String(matchId)
   )
 
   if(p){
@@ -160,37 +161,33 @@ app.post('/admin/pago',(req,res)=>{
 })
 
 
-// ✅ TOTAL
+// TOTAL (FUNCIONANDO ✅)
 app.get('/total',(req,res)=>{
 
   const total = predictions
-    .filter(p=>p.pagado)
+    .filter(p => p.pagado === true)
     .length * 5000
 
   res.send({total})
 })
 
 
-// ✅ ✅ ✅ EXPORTAR A EXCEL (ARREGLADO)
+// EXPORTAR EXCEL
 app.get('/export',(req,res)=>{
 
   let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
 
   predictions.forEach(p=>{
 
-    // ✅ buscar el partido
     const match = matches.find(m => m.id == p.matchId)
 
-    // ✅ nombre limpio
     const nombrePartido = match
       ? `${match.equipo1} vs ${match.equipo2}`
       : "Partido eliminado"
 
-    // ✅ forzar texto para Excel
     csv += `"${p.usuario}";"${p.telefono}";"${nombrePartido}";"'${p.resultado}'";"${p.pagado}"\n`
   })
 
-  // ✅ encoding correcto para Excel
   res.setHeader(
     "Content-Type",
     "text/csv; charset=utf-8"
@@ -201,12 +198,11 @@ app.get('/export',(req,res)=>{
     "attachment; filename=quiniela.csv"
   )
 
-  // ✅ BOM (corrige Excel)
   res.send("\uFEFF" + csv)
 })
 
 
-// ✅ LOGIN ADMIN
+// LOGIN
 app.post('/admin/login',(req,res)=>{
 
   const user = req.body.user
@@ -220,9 +216,9 @@ app.post('/admin/login',(req,res)=>{
 })
 
 
-// ✅ PUERTO (RENDER)
+// PUERTO
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, ()=>{
-  console.log("✅ backend listo en puerto", PORT)
+  console.log("backend listo en puerto", PORT)
 })
