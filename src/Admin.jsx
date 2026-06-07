@@ -5,7 +5,7 @@ const API = "https://mi-app-admin.onrender.com"
 
 const countries = [
   "Colombia","Alemania","Brasil","Argentina","España",
-  "Francia","Portugal","Inglaterra","Uzbekistán","RD Congo"
+  "Francia","Portugal","Inglaterra","Uzbekistán","RD Congo","Jordania"
 ]
 
 export default function Admin(){

@@ -30,7 +30,8 @@ export default function App(){
     "Portugal": "pt",
     "Inglaterra": "gb",
     "Uzbekistán": "uz",
-    "RD Congo": "cd"
+    "RD Congo": "cd",
+    "Jordania": "jo",
   }
 
   const getFlag = (name)=>{
