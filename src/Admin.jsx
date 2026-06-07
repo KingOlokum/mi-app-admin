@@ -23,36 +23,29 @@ export default function Admin(){
   },[])
 
   const cargarTodo = async ()=>{
-    const resMatches = await axios.get(API + '/matches')
-    setMatches(resMatches.data)
+    try{
+      const r = await axios.get(API + '/matches')
+      const b = await axios.get(API + '/bets')
+      const t = await axios.get(API + '/total')
 
-    const resBets = await axios.get(API + '/bets')
-    setBets(resBets.data)
+      setMatches(r.data)
+      setBets(b.data)
 
-    const resTotal = await axios.get(API + '/total')
+      // ✅ toma el total SIEMPRE correctamente
+      const valor = Number(
+        typeof t.data === "object" ? t.data.total : JSON.parse(t.data).total
+      )
 
-    // ✅ FIX REAL DEL TOTAL
-    let totalReal = 0
+      setTotal(valor)
 
-    if(typeof resTotal.data === "object"){
-      totalReal = resTotal.data.total
-    }else{
-      totalReal = JSON.parse(resTotal.data).total
+    }catch(e){
+      console.log("error cargar", e)
     }
-
-    setTotal(totalReal)
   }
 
   const crear = async ()=>{
-    if(!equipo1 || !equipo2){
-      alert("Selecciona equipos")
-      return
-    }
-
-    if(equipo1 === equipo2){
-      alert("No pueden ser iguales")
-      return
-    }
+    if(!equipo1 || !equipo2) return
+    if(equipo1 === equipo2) return
 
     await axios.post(API + '/admin/match',{
       equipo1,
@@ -78,7 +71,6 @@ export default function Admin(){
       matchId
     })
 
-    // ✅ clave: recargar TODO
     await cargarTodo()
   }
 
@@ -88,27 +80,16 @@ export default function Admin(){
 
         <h3 style={{textAlign:"center"}}>Panel Admin</h3>
 
-        {/* CREAR PARTIDO */}
-        <select
-          style={input}
-          value={equipo1}
-          onChange={e=>setEquipo1(e.target.value)}
-        >
+        <select style={input} value={equipo1}
+          onChange={e=>setEquipo1(e.target.value)}>
           <option value="">Equipo 1</option>
-          {countries.map(e=>(
-            <option key={e}>{e}</option>
-          ))}
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
-        <select
-          style={input}
-          value={equipo2}
-          onChange={e=>setEquipo2(e.target.value)}
-        >
+        <select style={input} value={equipo2}
+          onChange={e=>setEquipo2(e.target.value)}>
           <option value="">Equipo 2</option>
-          {countries.map(e=>(
-            <option key={e}>{e}</option>
-          ))}
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
         <input
@@ -122,11 +103,9 @@ export default function Admin(){
           Crear partido
         </button>
 
-        {/* PARTIDOS */}
         <h4>Partidos</h4>
 
         {matches.map(m=>{
-
           const cerrado = new Date(m.limite) < new Date()
 
           return (
@@ -136,32 +115,27 @@ export default function Admin(){
                 <br/>
                 <small>{new Date(m.limite).toLocaleString()}</small>
                 <br/>
-                <span style={{color: cerrado ? "red" : "green"}}>
-                  {cerrado ? "Cerrado" : "Abierto"}
+                <span style={{color: cerrado ? "red":"green"}}>
+                  {cerrado ? "Cerrado":"Abierto"}
                 </span>
               </div>
 
-              <button
-                style={deleteBtn}
-                onClick={()=>eliminar(m.id)}
-              >
+              <button style={deleteBtn}
+                onClick={()=>eliminar(m.id)}>
                 Eliminar
               </button>
             </div>
           )
         })}
 
-        {/* TOTAL */}
         <h3 style={{marginTop:"15px"}}>
           Total: ${total}
         </h3>
 
-        {/* APUESTAS */}
         <h4>Apuestas</h4>
 
         {bets.map((b,i)=>(
           <div key={i} style={box}>
-
             <div style={{fontSize:"12px"}}>
               {b.usuario}<br/>
               {b.telefono}<br/>
@@ -178,11 +152,9 @@ export default function Admin(){
                 Pagar
               </button>
             )}
-
           </div>
         ))}
 
-        {/* EXCEL */}
         <a href={API + '/export'} style={excelBtn}>
           Descargar Excel
         </a>
@@ -193,7 +165,7 @@ export default function Admin(){
 }
 
 
-// ESTILOS
+// estilos
 
 const wrap={
   minHeight:"100vh",
