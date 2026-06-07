@@ -45,9 +45,17 @@ export default function App(){
 
           <h1 style={title}>Apuestas Mundialista</h1>
 
-          <p style={subtitle}>
-            Pronostica partidos y gana
-          </p>
+            <p style={subtitle}>
+              Pronostica partidos y gana
+             </p>
+
+                  <p style={{
+                   color:"#cbd5f5",
+                   fontSize:"14px",
+                   marginTop:"-10px"
+                   }}>
+                   Acierta el marcador exacto y compite con otros jugadores
+                   </p>
 
           <div style={pagoBox}>
             <strong>$5.000 por apuesta</strong>
