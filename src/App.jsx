@@ -11,22 +11,17 @@ export default function App(){
   const [view,setView] = useState("home")
   const [adminOk,setAdminOk] = useState(false)
   const [matches,setMatches] = useState([])
-
-  // ✅ NUEVO: totales
   const [totales,setTotales] = useState({})
 
   useEffect(()=>{
 
-    // ✅ partidos
     axios.get(API + '/matches').then(r=>setMatches(r.data))
 
-    // ✅ totales por partido
     axios.get(API + '/total-by-match').then(r=>{
       setTotales(r.data || {})
     })
 
   },[])
-
 
   const countryCodes = {
     "Colombia": "co",
@@ -41,7 +36,6 @@ export default function App(){
     "RD Congo": "cd"
   }
 
-  // ✅ evita errores de bandera
   const getFlag = (name)=>{
     return countryCodes[name] || "un"
   }
@@ -82,9 +76,9 @@ export default function App(){
 
                 <div style={teams}>
 
-                  <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
-                    <img 
-                      src={`https://flagcdn.com/w40/${getFlag(m.equipo1)}.png`}
+                  {/* ✅ EQUIPO 1 */}
+                  <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
+                    .png`}
                       width="24"
                     />
                     <span>{m.equipo1}</span>
@@ -92,9 +86,9 @@ export default function App(){
 
                   <span style={vs}>VS</span>
 
-                  <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
-                    <img 
-                      src={`https://flagcdn.com/w40/${getFlag(m.equipo2)}.png`}
+                  {/* ✅ EQUIPO 2 */}
+                  <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
+                    .png`}
                       width="24"
                     />
                     <span>{m.equipo2}</span>
@@ -113,7 +107,7 @@ export default function App(){
                   {cerrado ? "Cerrado" : "Disponible"}
                 </div>
 
-                {/* ✅ TOTAL ACUMULADO (NUEVO) */}
+                {/* ✅ TOTAL ACUMULADO */}
                 <div style={{
                   marginTop:"6px",
                   fontSize:"14px",
