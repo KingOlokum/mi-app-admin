@@ -46,7 +46,7 @@ export default function App(){
       {view === "home" && (
         <div style={container}>
 
-          <h1 style={title}>Apuestas Mundialista</h1>
+          <h1 style={title}>Apuesta Mundialista</h1>
 
           <p style={subtitle}>
             Pronostica partidos y gana
