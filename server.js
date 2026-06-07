@@ -45,8 +45,24 @@ app.post('/admin/match',(req,res)=>{
     id: Date.now(),
     equipo1: req.body.equipo1,
     equipo2: req.body.equipo2,
-    limite: req.body.limite
+    limite: req.body.limite,
+    cerrado: false // ✅ IMPORTANTE
   })
+
+  saveData(data)
+  res.send({ok:true})
+})
+
+app.post('/admin/cerrar/:id',(req,res)=>{
+
+  const data = loadData()
+  const id = req.params.id
+
+  const match = data.matches.find(m => m.id == id)
+
+  if(match){
+    match.cerrado = true
+  }
 
   saveData(data)
   res.send({ok:true})
@@ -77,7 +93,8 @@ app.post('/predict',(req,res)=>{
     return res.status(400).send({error:"Partido no existe"})
   }
 
-  if(new Date(match.limite) < new Date()){
+  // ✅ SOLO CIERRE MANUAL
+  if(match.cerrado === true){
     return res.status(400).send({error:"Apuestas cerradas"})
   }
 
@@ -143,7 +160,7 @@ app.get('/total',(req,res)=>{
 
 
 /* =========================
-   ✅ NUEVO: TOTAL POR PARTIDO
+   TOTAL POR PARTIDO
 ========================= */
 app.get('/total-by-match',(req,res)=>{
 
