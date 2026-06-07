@@ -4,65 +4,67 @@ import Player from './Player'
 import Admin from './Admin'
 import AdminLogin from './AdminLogin'
 
-// ✅ URL DEL BACKEND EN RENDER
 const API = "https://mi-app-admin.onrender.com"
-
 
 export default function App(){
 
-  // ✅ controla vista (home / player / admin)
   const [view,setView] = useState("home")
-
-  // ✅ controla login admin
   const [adminOk,setAdminOk] = useState(false)
-
-  // ✅ guarda los partidos
   const [matches,setMatches] = useState([])
 
+  // ✅ NUEVO: totales
+  const [totales,setTotales] = useState({})
 
-  // ✅ CARGA LOS PARTIDOS AL INICIAR
   useEffect(()=>{
+
+    // ✅ partidos
     axios.get(API + '/matches').then(r=>setMatches(r.data))
+
+    // ✅ totales por partido
+    axios.get(API + '/total-by-match').then(r=>{
+      setTotales(r.data || {})
+    })
+
   },[])
 
 
-  // ✅ MAPA DE BANDERAS (CLAVE)
   const countryCodes = {
-    
-  "Colombia": "co",
-  "Alemania": "de",
-  "Brasil": "br",
-  "Argentina": "ar",
-  "España": "es",
-  "Francia": "fr",
-  "Portugal": "pt",
-  "Inglaterra": "gb",
-  "Uzbekistán": "uz",
-  "RD Congo": "cd"
-
+    "Colombia": "co",
+    "Alemania": "de",
+    "Brasil": "br",
+    "Argentina": "ar",
+    "España": "es",
+    "Francia": "fr",
+    "Portugal": "pt",
+    "Inglaterra": "gb",
+    "Uzbekistán": "uz",
+    "RD Congo": "cd"
   }
 
+  // ✅ evita errores de bandera
+  const getFlag = (name)=>{
+    return countryCodes[name] || "un"
+  }
 
   return (
     <div>
 
-      {/* ✅ PANTALLA PRINCIPAL */}
       {view === "home" && (
         <div style={container}>
 
           <h1 style={title}>Apuestas Mundialista</h1>
 
-            <p style={subtitle}>
-              Pronostica partidos y gana
-             </p>
+          <p style={subtitle}>
+            Pronostica partidos y gana
+          </p>
 
-                  <p style={{
-                   color:"#cbd5f5",
-                   fontSize:"14px",
-                   marginTop:"-10px"
-                   }}>
-                   Acierta el marcador exacto y compite con otros jugadores
-                   </p>
+          <p style={{
+            color:"#cbd5f5",
+            fontSize:"14px",
+            marginTop:"-10px"
+          }}>
+            Acierta el marcador exacto y compite con otros jugadores
+          </p>
 
           <div style={pagoBox}>
             <strong>$5.000 por apuesta</strong>
@@ -71,8 +73,6 @@ export default function App(){
             </div>
           </div>
 
-
-          {/* ✅ MOSTRAR PARTIDOS CREADOS */}
           {matches.map(m => {
 
             const cerrado = new Date(m.limite) < new Date()
@@ -80,13 +80,11 @@ export default function App(){
             return (
               <div key={m.id} style={matchCard}>
 
-                {/* ✅ PARTIDO CON BANDERAS + NOMBRE */}
                 <div style={teams}>
 
-                  {/* Equipo 1 */}
                   <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
                     <img 
-                      src={`https://flagcdn.com/w40/${countryCodes[m.equipo1]}.png`}
+                      src={`https://flagcdn.com/w40/${getFlag(m.equipo1)}.png`}
                       width="24"
                     />
                     <span>{m.equipo1}</span>
@@ -94,10 +92,9 @@ export default function App(){
 
                   <span style={vs}>VS</span>
 
-                  {/* Equipo 2 */}
                   <div style={{display:"flex", alignItems:"center", gap:"5px"}}>
                     <img 
-                      src={`https://flagcdn.com/w40/${countryCodes[m.equipo2]}.png`}
+                      src={`https://flagcdn.com/w40/${getFlag(m.equipo2)}.png`}
                       width="24"
                     />
                     <span>{m.equipo2}</span>
@@ -105,12 +102,10 @@ export default function App(){
 
                 </div>
 
-                {/* ✅ FECHA */}
                 <div style={date}>
                   {new Date(m.limite).toLocaleString()}
                 </div>
 
-                {/* ✅ ESTADO */}
                 <div style={{
                   marginTop:"6px",
                   color: cerrado ? "#ef4444" : "#22c55e"
@@ -118,12 +113,20 @@ export default function App(){
                   {cerrado ? "Cerrado" : "Disponible"}
                 </div>
 
+                {/* ✅ TOTAL ACUMULADO (NUEVO) */}
+                <div style={{
+                  marginTop:"6px",
+                  fontSize:"14px",
+                  color:"#22c55e",
+                  fontWeight:"600"
+                }}>
+                  Total acumulado: ${(totales[m.id] || 0).toLocaleString()}
+                </div>
+
               </div>
             )
           })}
 
-
-          {/* ✅ BOTONES */}
           <button style={btn} onClick={()=>setView("player")}>
             Entrar como jugador
           </button>
@@ -135,20 +138,15 @@ export default function App(){
         </div>
       )}
 
-
-      {/* ✅ PLAYER */}
       {view === "player" && (
         <>
           <button style={backBtn} onClick={()=>setView("home")}>
             ← Volver
           </button>
-
           <Player/>
         </>
       )}
 
-
-      {/* ✅ ADMIN */}
       {view === "admin" && (
         <>
           <button
@@ -173,7 +171,7 @@ export default function App(){
 }
 
 
-// 🎨 ESTILOS
+// estilos
 
 const container={
   minHeight:"100vh",

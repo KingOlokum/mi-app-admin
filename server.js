@@ -9,13 +9,11 @@ app.use(express.json())
 
 const DATA_FILE = './data.json'
 
-// cargar
 function loadData() {
   const raw = fs.readFileSync(DATA_FILE)
   return JSON.parse(raw)
 }
 
-// guardar
 function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
 }
@@ -40,7 +38,6 @@ app.get('/matches',(req,res)=>{
   res.send(data.matches)
 })
 
-
 app.post('/admin/match',(req,res)=>{
   const data = loadData()
 
@@ -54,7 +51,6 @@ app.post('/admin/match',(req,res)=>{
   saveData(data)
   res.send({ok:true})
 })
-
 
 app.delete('/admin/match/:id',(req,res)=>{
   const data = loadData()
@@ -104,7 +100,6 @@ app.post('/predict',(req,res)=>{
   res.send({ok:true})
 })
 
-
 app.get('/bets',(req,res)=>{
   const data = loadData()
   res.send(data.predictions)
@@ -134,7 +129,7 @@ app.post('/admin/pago',(req,res)=>{
 
 
 /* =========================
-   TOTAL
+   TOTAL GLOBAL
 ========================= */
 app.get('/total',(req,res)=>{
   const data = loadData()
@@ -148,7 +143,30 @@ app.get('/total',(req,res)=>{
 
 
 /* =========================
-   RANKING ✅ ARREGLADO
+   ✅ NUEVO: TOTAL POR PARTIDO
+========================= */
+app.get('/total-by-match',(req,res)=>{
+
+  const data = loadData()
+
+  let totales = {}
+
+  data.matches.forEach(match => {
+
+    const apuestas = data.predictions.filter(p =>
+      p.matchId == match.id &&
+      p.pagado === true
+    )
+
+    totales[match.id] = apuestas.length * 5000
+  })
+
+  res.send(totales)
+})
+
+
+/* =========================
+   RANKING
 ========================= */
 app.get('/top-bets',(req,res)=>{
 
