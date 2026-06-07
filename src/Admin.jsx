@@ -18,23 +18,31 @@ export default function Admin(){
   const [equipo2,setEquipo2] = useState("")
   const [limite,setLimite] = useState("")
 
-  // ✅ cargar todo al iniciar
   useEffect(()=>{
     cargarTodo()
   },[])
 
   const cargarTodo = async ()=>{
-    const r = await axios.get(API + '/matches')
-    setMatches(r.data)
+    const resMatches = await axios.get(API + '/matches')
+    setMatches(resMatches.data)
 
-    const b = await axios.get(API + '/bets')
-    setBets(b.data)
+    const resBets = await axios.get(API + '/bets')
+    setBets(resBets.data)
 
-    const t = await axios.get(API + '/total')
-    setTotal(t.data.total)
+    const resTotal = await axios.get(API + '/total')
+
+    // ✅ FIX REAL DEL TOTAL
+    let totalReal = 0
+
+    if(typeof resTotal.data === "object"){
+      totalReal = resTotal.data.total
+    }else{
+      totalReal = JSON.parse(resTotal.data).total
+    }
+
+    setTotal(totalReal)
   }
 
-  // ✅ crear partido
   const crear = async ()=>{
     if(!equipo1 || !equipo2){
       alert("Selecciona equipos")
@@ -59,20 +67,18 @@ export default function Admin(){
     await cargarTodo()
   }
 
-  // ✅ eliminar partido
   const eliminar = async (id)=>{
     await axios.delete(API + '/admin/match/' + id)
     await cargarTodo()
   }
 
-  // ✅ PAGAR (CORRECTO)
   const pagar = async (telefono,matchId)=>{
     await axios.post(API + '/admin/pago',{
       telefono,
       matchId
     })
 
-    // ✅ recargar TODO (clave)
+    // ✅ clave: recargar TODO
     await cargarTodo()
   }
 
@@ -116,7 +122,7 @@ export default function Admin(){
           Crear partido
         </button>
 
-        {/* LISTA DE PARTIDOS */}
+        {/* PARTIDOS */}
         <h4>Partidos</h4>
 
         {matches.map(m=>{
@@ -130,8 +136,8 @@ export default function Admin(){
                 <br/>
                 <small>{new Date(m.limite).toLocaleString()}</small>
                 <br/>
-                <span style={{color: cerrado ? "red":"green"}}>
-                  {cerrado ? "Cerrado":"Abierto"}
+                <span style={{color: cerrado ? "red" : "green"}}>
+                  {cerrado ? "Cerrado" : "Abierto"}
                 </span>
               </div>
 
@@ -176,11 +182,8 @@ export default function Admin(){
           </div>
         ))}
 
-        {/* DESCARGAR EXCEL */}
-        <a
-          href={API + '/export'}
-          style={excelBtn}
-        >
+        {/* EXCEL */}
+        <a href={API + '/export'} style={excelBtn}>
           Descargar Excel
         </a>
 
