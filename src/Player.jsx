@@ -9,7 +9,6 @@ export default function Player(){
   const [matches,setMatches] = useState([])
   const [ranking,setRanking] = useState({})
   const [inputs,setInputs] = useState({})
-  const [animated,setAnimated] = useState(false)
 
   const [form,setForm] = useState({
     nombre:"",
@@ -22,12 +21,24 @@ export default function Player(){
       axios.get(API+'/matches').then(r=>setMatches(r.data))
       axios.get(API+'/top-bets').then(r=>{
         setRanking(r.data || {})
-        setTimeout(()=>setAnimated(true),200)
       })
     }
   },[step])
 
+  // ✅ LOGIN / REGISTRO CON VALIDACIÓN
   const entrar = async ()=>{
+
+    // ✅ VALIDACIÓN TELÉFONO
+    if(form.telefono.length !== 10){
+      alert("El teléfono debe tener 10 dígitos")
+      return
+    }
+
+    if(!form.telefono.startsWith("3")){
+      alert("Número inválido")
+      return
+    }
+
     await axios.post(API+'/register',form)
     setStep("apuestas")
   }
@@ -37,7 +48,6 @@ export default function Player(){
     const local = inputs[id]?.local
     const visitante = inputs[id]?.visitante
 
-    // ✅ VALIDACIÓN CORRECTA
     if(local === "" || visitante === "" || local === undefined || visitante === undefined){
       alert("Completa ambos marcadores")
       return
@@ -52,13 +62,13 @@ export default function Player(){
 
     try{
       await axios.post(API+'/predict',{
-        usuario: form.nombre+" "+form.apellido,
+        usuario: form.nombre + " " + form.apellido,
         telefono: form.telefono,
         matchId:id,
         resultado
       })
 
-      alert("Apuesta registrada ✅")
+      alert("Apuesta registrada")
 
       const res = await axios.get(API+'/top-bets')
       setRanking(res.data)
@@ -73,19 +83,49 @@ export default function Player(){
       <div style={wrap}>
         <div style={card}>
 
-          <input style={input} placeholder="Nombre"
-            onChange={e=>setForm({...form,nombre:e.target.value})}
+          {/* ✅ NOMBRE */}
+          <input
+            style={input}
+            placeholder="Nombre"
+            value={form.nombre}
+            onChange={e=>{
+              let valor = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,"")
+              setForm({...form,nombre:valor})
+            }}
           />
 
-          <input style={input} placeholder="Apellido"
-            onChange={e=>setForm({...form,apellido:e.target.value})}
+          {/* ✅ APELLIDO */}
+          <input
+            style={input}
+            placeholder="Apellido"
+            value={form.apellido}
+            onChange={e=>{
+              let valor = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,"")
+              setForm({...form,apellido:valor})
+            }}
           />
 
-          <input style={input} placeholder="Teléfono"
-            onChange={e=>setForm({...form,telefono:e.target.value})}
+          {/* ✅ TELÉFONO */}
+          <input
+            style={input}
+            placeholder="3001234567"
+            maxLength={10}
+            value={form.telefono}
+            onChange={e=>{
+
+              let valor = e.target.value.replace(/\D/g,"")
+
+              if(valor.length > 10){
+                valor = valor.slice(0,10)
+              }
+
+              setForm({...form,telefono:valor})
+            }}
           />
 
-          <button style={btn} onClick={entrar}>Entrar</button>
+          <button style={btn} onClick={entrar}>
+            Entrar
+          </button>
 
         </div>
       </div>
@@ -110,20 +150,19 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {/* ✅ INPUTS CORREGIDOS */}
               <div style={scoreBox}>
 
                 <input
                   type="number"
                   min="0"
                   placeholder="0"
-                  value={inputs[m.id]?.local ?? ""} // ✅ CLAVE
+                  value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
                     ...inputs,
                     [m.id]: {
                       ...inputs[m.id],
-                      local: e.target.value // ✅ SIN Number()
+                      local: e.target.value
                     }
                   })}
                 />
@@ -134,13 +173,13 @@ export default function Player(){
                   type="number"
                   min="0"
                   placeholder="0"
-                  value={inputs[m.id]?.visitante ?? ""} // ✅ CLAVE
+                  value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
                     ...inputs,
                     [m.id]: {
                       ...inputs[m.id],
-                      visitante: e.target.value // ✅ SIN Number()
+                      visitante: e.target.value
                     }
                   })}
                 />
@@ -151,7 +190,7 @@ export default function Player(){
                 Apostar
               </button>
 
-              {/* ✅ RANKING */}
+              {/* RANKING */}
               <div style={{marginTop:10}}>
 
                 {top.map((r,i)=>{
@@ -196,13 +235,12 @@ export default function Player(){
 }
 
 
-// 🎨 ESTILOS (SIN CAMBIOS)
+// estilos
 
 const wrap={
   minHeight:"100vh",
   display:"flex",
   justifyContent:"center",
-  alignItems:"flex-start",
   paddingTop:"80px",
   background:"#020617"
 }
