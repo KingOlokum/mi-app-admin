@@ -45,32 +45,32 @@ async function start(){
     res.send({ok:true})
   })
 
-  // ✅ CERRAR (CORREGIDO)
+  // ✅ CERRAR
   app.post('/admin/cerrar/:id', async (req,res)=>{
-    const id = String(req.params.id).trim()
+    const id = String(req.params.id)
 
     await db.collection("matches").updateOne(
-      { id: id },
+      { id },
       { $set:{ cerrado:true } }
     )
 
     res.send({ok:true})
   })
 
-  // ✅ BORRAR (CORREGIDO)
+  // ✅ BORRAR
   app.delete('/admin/match/:id', async (req,res)=>{
-    const id = String(req.params.id).trim()
+    const id = String(req.params.id)
 
-    await db.collection("matches").deleteOne({ id: id })
+    await db.collection("matches").deleteOne({ id })
     await db.collection("predictions").deleteMany({ matchId:id })
 
     res.send({ok:true})
   })
 
-  // ✅ PREDICT (CORREGIDO)
+  // ✅ PREDICT
   app.post('/predict', async (req,res)=>{
 
-    const id = String(req.body.matchId).trim()
+    const id = String(req.body.matchId)
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -101,14 +101,9 @@ async function start(){
     res.send({ok:true})
   })
 
-  // BETS
-  app.get('/bets', async (req,res)=>{
-    const data = await db.collection("predictions").find().toArray()
-    res.send(data)
-  })
-
-  // ✅ RANKING (CORREGIDO)
+  // ✅ RANKING
   app.get('/top-bets', async (req,res)=>{
+
     const matches = await db.collection("matches").find().toArray()
     const predictions = await db.collection("predictions").find().toArray()
 
@@ -117,11 +112,10 @@ async function start(){
     matches.forEach(match=>{
 
       const apuestas = predictions.filter(
-        p => String(p.matchId).trim() === String(match.id).trim()
+        p => String(p.matchId) === String(match.id)
       )
 
       let conteo = {}
-
       apuestas.forEach(a=>{
         conteo[a.resultado] = (conteo[a.resultado] || 0) + 1
       })
@@ -134,9 +128,8 @@ async function start(){
   })
 
   app.listen(PORT, ()=>{
-    console.log("🚀 Servidor funcionando")
+    console.log("🚀 OK funcionando")
   })
-
 }
 
 start()

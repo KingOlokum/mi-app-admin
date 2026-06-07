@@ -6,35 +6,14 @@ const API = "https://mi-app-admin.onrender.com"
 export default function Admin(){
 
   const [matches,setMatches] = useState([])
-  const [bets,setBets] = useState([])
-
-  const [form,setForm] = useState({
-    equipo1:"",
-    equipo2:"",
-    limite:""
-  })
-
-  const countries = [
-    "Colombia","Alemania","Brasil","Argentina","España",
-    "Francia","Portugal","Inglaterra","Uzbekistán",
-    "RD Congo","Jordania"
-  ]
 
   useEffect(()=>{
     cargar()
   },[])
 
   const cargar = async ()=>{
-    const m = await axios.get(API+"/matches")
-    setMatches(m.data || [])
-
-    const b = await axios.get(API+"/bets")
-    setBets(b.data || [])
-  }
-
-  const crear = async ()=>{
-    await axios.post(API+"/admin/match",form)
-    cargar()
+    const r = await axios.get(API+"/matches")
+    setMatches(r.data || [])
   }
 
   const cerrar = async (id)=>{
@@ -51,8 +30,6 @@ export default function Admin(){
     <div style={{padding:20,color:"#fff"}}>
 
       <h2>Admin</h2>
-
-      <button onClick={crear}>Crear</button>
 
       {matches.map(m=>(
         <div key={m.id}>
