@@ -40,16 +40,22 @@ export default function App(){
   return (
     <div>
 
+      {/* HOME */}
       {view === "home" && (
         <div style={container}>
 
-          <h1 style={title}>Apuesta Mundialista</h1>
+          {/* ✅ ADMIN OCULTO (DOBLE CLICK) */}
+          <h1
+            style={title}
+            onDoubleClick={()=>setView("admin")}
+          >
+            Apuesta Mundialista
+          </h1>
 
           <p style={subtitle}>
             Pronostica partidos y gana
           </p>
 
-          {/* ✅ MENSAJE RECUPERADO */}
           <p style={{
             color:"#cbd5f5",
             fontSize:"14px",
@@ -121,13 +127,12 @@ export default function App(){
             Entrar como jugador
           </button>
 
-          <button style={btn} onClick={()=>setView("admin")}>
-            Modo administrador
-          </button>
+          {/* ✅ BOTÓN ADMIN ELIMINADO */}
 
         </div>
       )}
 
+      {/* PLAYER */}
       {view === "player" && (
         <>
           <button style={backBtn} onClick={()=>setView("home")}>
@@ -137,6 +142,7 @@ export default function App(){
         </>
       )}
 
+      {/* ADMIN */}
       {view === "admin" && (
         <>
           <button
@@ -161,7 +167,7 @@ export default function App(){
 }
 
 
-// estilos
+// ✅ ESTILOS
 
 const container={
   minHeight:"100vh",
@@ -174,7 +180,7 @@ const container={
   color:"#fff"
 }
 
-const title={ fontSize:"26px", fontWeight:"700" }
+const title={ fontSize:"26px", fontWeight:"700", cursor:"pointer" }
 
 const subtitle={ color:"#94a3b8" }
 
