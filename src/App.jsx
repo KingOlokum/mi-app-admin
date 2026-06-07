@@ -14,13 +14,10 @@ export default function App(){
   const [totales,setTotales] = useState({})
 
   useEffect(()=>{
-
     axios.get(API + '/matches').then(r=>setMatches(r.data))
-
     axios.get(API + '/total-by-match').then(r=>{
       setTotales(r.data || {})
     })
-
   },[])
 
   const countryCodes = {
@@ -52,24 +49,13 @@ export default function App(){
             Pronostica partidos y gana
           </p>
 
-          <p style={{
-            color:"#cbd5f5",
-            fontSize:"14px",
-            marginTop:"-10px"
-          }}>
-            Acierta el marcador exacto y compite con otros jugadores
-          </p>
-
           <div style={pagoBox}>
             <strong>$5.000 por apuesta</strong>
-            <div style={{marginTop:"4px"}}>
-              Nequi: 3146051396
-            </div>
+            <div>Nequi: 3146051396</div>
           </div>
 
           {matches.map(m => {
 
-            // ✅ AHORA el estado depende SOLO del backend
             const cerrado = m.cerrado === true
 
             return (
@@ -77,7 +63,7 @@ export default function App(){
 
                 <div style={teams}>
 
-                  {/* ✅ EQUIPO 1 */}
+                  {/* EQUIPO 1 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
                     <img
                       src={`https://flagcdn.com/w40/${getFlag(m.equipo1)}.png`}
@@ -88,7 +74,7 @@ export default function App(){
 
                   <span style={vs}>VS</span>
 
-                  {/* ✅ EQUIPO 2 */}
+                  {/* EQUIPO 2 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
                     <img
                       src={`https://flagcdn.com/w40/${getFlag(m.equipo2)}.png`}
@@ -103,7 +89,7 @@ export default function App(){
                   {new Date(m.limite).toLocaleString()}
                 </div>
 
-                {/* ✅ ESTADO REAL */}
+                {/* ESTADO */}
                 <div style={{
                   marginTop:"6px",
                   color: cerrado ? "#ef4444" : "#22c55e"
@@ -111,7 +97,7 @@ export default function App(){
                   {cerrado ? "Cerrado" : "Disponible"}
                 </div>
 
-                {/* ✅ TOTAL */}
+                {/* TOTAL */}
                 <div style={{
                   marginTop:"6px",
                   fontSize:"14px",
@@ -169,7 +155,7 @@ export default function App(){
 }
 
 
-// estilos (los tuyos sin cambiar)
+// estilos (los tuyos igual)
 
 const container={
   minHeight:"100vh",
