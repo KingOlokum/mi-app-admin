@@ -28,11 +28,18 @@ export default function App(){
 
   // ✅ MAPA DE BANDERAS (CLAVE)
   const countryCodes = {
-    "Colombia": "co",
-    "Uzbekistán": "uz",
-    "RD Congo": "cd",
-    "Portugal": "pt",
-    "Alemania": "de"
+    
+  "Colombia": "co",
+  "Alemania": "de",
+  "Brasil": "br",
+  "Argentina": "ar",
+  "España": "es",
+  "Francia": "fr",
+  "Portugal": "pt",
+  "Inglaterra": "gb",
+  "Uzbekistán": "uz",
+  "RD Congo": "cd"
+
   }
 
 
