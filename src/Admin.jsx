@@ -3,44 +3,43 @@ import axios from "axios"
 
 const API = "https://mi-app-admin.onrender.com"
 
-// ✅ LISTA DE PAÍSES (PRO)
+// ✅ LISTA DE PAÍSES
 const countries = [
-  { name: "Colombia", code: "co" },
-  { name: "Alemania", code: "de" },
-  { name: "Brasil", code: "br" },
-  { name: "Argentina", code: "ar" },
-  { name: "España", code: "es" },
-  { name: "Francia", code: "fr" },
-  { name: "Portugal", code: "pt" },
-  { name: "Inglaterra", code: "gb" },
-  { name: "Uzbekistán", code: "uz" },
-  { name: "RD Congo", code: "cd" }
+  "Colombia","Alemania","Brasil","Argentina","España",
+  "Francia","Portugal","Inglaterra","Uzbekistán","RD Congo"
 ]
 
 export default function Admin(){
 
   const [matches,setMatches] = useState([])
+  const [bets,setBets] = useState([])
+  const [total,setTotal] = useState(0)
 
-  // ✅ estados
   const [equipo1,setEquipo1] = useState("")
   const [equipo2,setEquipo2] = useState("")
   const [limite,setLimite] = useState("")
 
-  // ✅ cargar partidos
   useEffect(()=>{
     cargar()
   },[])
 
+  // ✅ CARGAR TODO
   const cargar = async ()=>{
     const r = await axios.get(API+'/matches')
     setMatches(r.data)
+
+    const b = await axios.get(API+'/bets')
+    setBets(b.data)
+
+    const t = await axios.get(API+'/total')
+    setTotal(t.data.total)
   }
 
-  // ✅ crear partido
+  // ✅ CREAR PARTIDO
   const crear = async ()=>{
 
     if(!equipo1 || !equipo2){
-      alert("Selecciona los equipos")
+      alert("Selecciona equipos")
       return
     }
 
@@ -57,7 +56,6 @@ export default function Admin(){
 
     alert("Partido creado ✅")
 
-    // limpiar
     setEquipo1("")
     setEquipo2("")
     setLimite("")
@@ -65,72 +63,40 @@ export default function Admin(){
     cargar()
   }
 
-  // ✅ eliminar
+  // ✅ ELIMINAR
   const eliminar = async (id)=>{
     await axios.delete(API+'/admin/match/'+id)
     cargar()
   }
 
-  // ✅ encontrar código bandera
-  const getCode = (name)=>{
-    const pais = countries.find(c => c.name === name)
-    return pais?.code
+  // ✅ PAGOS
+  const pagar = async (telefono,matchId)=>{
+    await axios.post(API+'/admin/pago',{
+      telefono,
+      matchId
+    })
+    cargar()
   }
 
   return (
     <div style={wrap}>
       <div style={card}>
 
-        <h3 style={{textAlign:"center"}}>Crear Partido</h3>
+        <h3 style={{textAlign:"center"}}>Panel Admin</h3>
 
-        {/* ✅ SELECT EQUIPO 1 */}
-        <select
-          style={input}
-          value={equipo1}
-          onChange={e=>setEquipo1(e.target.value)}
-        >
-          <option value="">Selecciona equipo 1</option>
-          {countries.map(c=>(
-            <option key={c.name} value={c.name}>
-              {c.name}
-            </option>
-          ))}
+        {/* ✅ CREAR PARTIDO */}
+        <select style={input} value={equipo1}
+          onChange={e=>setEquipo1(e.target.value)}>
+          <option value="">Equipo 1</option>
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
-        {/* ✅ SELECT EQUIPO 2 */}
-        <select
-          style={input}
-          value={equipo2}
-          onChange={e=>setEquipo2(e.target.value)}
-        >
-          <option value="">Selecciona equipo 2</option>
-          {countries.map(c=>(
-            <option key={c.name} value={c.name}>
-              {c.name}
-            </option>
-          ))}
+        <select style={input} value={equipo2}
+          onChange={e=>setEquipo2(e.target.value)}>
+          <option value="">Equipo 2</option>
+          {countries.map(e=><option key={e}>{e}</option>)}
         </select>
 
-        {/* ✅ PREVIEW CON BANDERAS (PRO 🔥) */}
-        {(equipo1 && equipo2) && (
-          <div style={preview}>
-
-            <div style={teamBox}>
-             
-              <span>{equipo1}</span>
-            </div>
-
-            <span>VS</span>
-
-            <div style={teamBox}>
-             
-              <span>{equipo2}</span>
-            </div>
-
-          </div>
-        )}
-
-        {/* ✅ FECHA */}
         <input
           type="datetime-local"
           style={input}
@@ -142,24 +108,84 @@ export default function Admin(){
           Crear partido
         </button>
 
-        <h4 style={{marginTop:"10px"}}>Partidos creados</h4>
+        {/* ✅ PARTIDOS */}
+        <h4>Partidos</h4>
 
-        {matches.map(m=>(
-          <div key={m.id} style={box}>
+        {matches.map(m=>{
 
-            <div style={{fontWeight:"600"}}>
-              {m.equipo1} VS {m.equipo2}
+          const cerrado = new Date(m.limite) < new Date()
+
+          return (
+            <div key={m.id} style={box}>
+
+              <div>
+                {m.equipo1} vs {m.equipo2}
+                <br/>
+                <small>
+                  {new Date(m.limite).toLocaleString()}
+                </small>
+                <br/>
+                <span style={{
+                  color: cerrado ? "red" : "green"
+                }}>
+                  {cerrado ? "Cerrado" : "Abierto"}
+                </span>
+              </div>
+
+              <button style={deleteBtn}
+                onClick={()=>eliminar(m.id)}>
+                ❌
+              </button>
+            </div>
+          )
+        })}
+
+        {/* ✅ TOTAL */}
+        <h3 style={{marginTop:"15px"}}>
+          💰 Total: ${total}
+        </h3>
+
+        {/* ✅ APUESTAS */}
+        <h4>Apuestas</h4>
+
+        {bets.map((b,i)=>(
+          <div key={i} style={box}>
+
+            <div style={{fontSize:"12px"}}>
+              👤 {b.usuario}<br/>
+              📱 {b.telefono}<br/>
+              🎯 {b.resultado}
             </div>
 
-            <button
-              style={deleteBtn}
-              onClick={()=>eliminar(m.id)}
-            >
-              Eliminar
-            </button>
+            {b.pagado ? (
+              <span style={{color:"lime"}}>
+                Pagado ✅
+              </span>
+            ) : (
+              <button style={btn}
+                onClick={()=>pagar(b.telefono,b.matchId)}>
+                Pagar
+              </button>
+            )}
 
           </div>
         ))}
+
+        {/* ✅ DESCARGAR EXCEL */}
+        <a
+          href={API+'/export'}
+          style={{
+            marginTop:"10px",
+            textAlign:"center",
+            padding:"10px",
+            background:"#22c55e",
+            borderRadius:"10px",
+            color:"#fff",
+            textDecoration:"none"
+          }}
+        >
+          Descargar Excel
+        </a>
 
       </div>
     </div>
@@ -198,8 +224,8 @@ const input={
 }
 
 const btn={
-  padding:"10px",
-  borderRadius:"10px",
+  padding:"6px 10px",
+  borderRadius:"8px",
   border:"none",
   background:"#0284c7",
   color:"#fff",
@@ -216,24 +242,10 @@ const box={
 }
 
 const deleteBtn={
-  background:"#ef4444",
+  background:"red",
   border:"none",
   color:"#fff",
-  padding:"6px 8px",
+  padding:"5px",
   borderRadius:"6px",
   cursor:"pointer"
-}
-
-const preview={
-  display:"flex",
-  justifyContent:"center",
-  alignItems:"center",
-  gap:"10px",
-  marginTop:"10px"
-}
-
-const teamBox={
-  display:"flex",
-  alignItems:"center",
-  gap:"5px"
 }
