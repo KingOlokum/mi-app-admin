@@ -49,6 +49,16 @@ export default function App(){
             Pronostica partidos y gana
           </p>
 
+          {/* ✅ MENSAJE RECUPERADO */}
+          <p style={{
+            color:"#cbd5f5",
+            fontSize:"14px",
+            marginTop:"-10px",
+            textAlign:"center"
+          }}>
+            Acierta el marcador exacto y compite con otros jugadores.
+          </p>
+
           <div style={pagoBox}>
             <strong>$5.000 por apuesta</strong>
             <div>Nequi: 3146051396</div>
@@ -63,7 +73,6 @@ export default function App(){
 
                 <div style={teams}>
 
-                  {/* EQUIPO 1 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
                     <img
                       src={`https://flagcdn.com/w40/${getFlag(m.equipo1)}.png`}
@@ -74,7 +83,6 @@ export default function App(){
 
                   <span style={vs}>VS</span>
 
-                  {/* EQUIPO 2 */}
                   <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
                     <img
                       src={`https://flagcdn.com/w40/${getFlag(m.equipo2)}.png`}
@@ -89,7 +97,6 @@ export default function App(){
                   {new Date(m.limite).toLocaleString()}
                 </div>
 
-                {/* ESTADO */}
                 <div style={{
                   marginTop:"6px",
                   color: cerrado ? "#ef4444" : "#22c55e"
@@ -97,7 +104,6 @@ export default function App(){
                   {cerrado ? "Cerrado" : "Disponible"}
                 </div>
 
-                {/* TOTAL */}
                 <div style={{
                   marginTop:"6px",
                   fontSize:"14px",
@@ -155,7 +161,7 @@ export default function App(){
 }
 
 
-// estilos (los tuyos igual)
+// estilos
 
 const container={
   minHeight:"100vh",
