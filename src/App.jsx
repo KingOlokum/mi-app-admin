@@ -31,7 +31,8 @@ export default function App(){
     "Colombia": "co",
     "Uzbekistán": "uz",
     "RD Congo": "cd",
-    "Portugal": "pt"
+    "Portugal": "pt",
+    "Alemania": "de"
   }
 
 
