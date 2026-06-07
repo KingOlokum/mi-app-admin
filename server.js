@@ -20,56 +20,57 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
 }
 
-// iniciar
-let { users, matches, predictions } = loadData()
 
-
-// REGISTRO
+/* =========================
+   REGISTRO
+========================= */
 app.post('/register',(req,res)=>{
-  users.push(req.body)
-  saveData({ users, matches, predictions })
+  const data = loadData()
+  data.users.push(req.body)
+  saveData(data)
   res.send({ok:true})
 })
 
 
-// PARTIDOS
+/* =========================
+   PARTIDOS
+========================= */
 app.get('/matches',(req,res)=>{
   const data = loadData()
   res.send(data.matches)
 })
 
 
-// CREAR PARTIDO
 app.post('/admin/match',(req,res)=>{
+  const data = loadData()
 
-  matches.push({
+  data.matches.push({
     id: Date.now(),
     equipo1: req.body.equipo1,
     equipo2: req.body.equipo2,
     limite: req.body.limite
   })
 
-  saveData({ users, matches, predictions })
-
+  saveData(data)
   res.send({ok:true})
 })
 
 
-// ELIMINAR PARTIDO
 app.delete('/admin/match/:id',(req,res)=>{
-
+  const data = loadData()
   const id = req.params.id
 
-  matches = matches.filter(m => m.id != id)
-  predictions = predictions.filter(p => p.matchId != id)
+  data.matches = data.matches.filter(m => m.id != id)
+  data.predictions = data.predictions.filter(p => p.matchId != id)
 
-  saveData({ users, matches, predictions })
-
+  saveData(data)
   res.send({ok:true})
 })
 
 
-// HACER APUESTA
+/* =========================
+   APUESTAS
+========================= */
 app.post('/predict',(req,res)=>{
 
   const data = loadData()
@@ -96,23 +97,23 @@ app.post('/predict',(req,res)=>{
   data.predictions.push({
     ...req.body,
     matchId: Number(req.body.matchId),
-    pagado: false
+    pagado:false
   })
 
   saveData(data)
-
   res.send({ok:true})
 })
 
 
-// VER APUESTAS ✅ (CORREGIDO)
 app.get('/bets',(req,res)=>{
   const data = loadData()
   res.send(data.predictions)
 })
 
 
-// PAGOS ✅ (CORREGIDO)
+/* =========================
+   PAGOS
+========================= */
 app.post('/admin/pago',(req,res)=>{
 
   const data = loadData()
@@ -128,14 +129,14 @@ app.post('/admin/pago',(req,res)=>{
   }
 
   saveData(data)
-
   res.send({ok:true})
 })
 
 
-// ✅ ✅ ✅ TOTAL CORRECTO
+/* =========================
+   TOTAL
+========================= */
 app.get('/total',(req,res)=>{
-
   const data = loadData()
 
   const total = data.predictions
@@ -146,7 +147,9 @@ app.get('/total',(req,res)=>{
 })
 
 
-// RANKING
+/* =========================
+   RANKING ✅ ARREGLADO
+========================= */
 app.get('/top-bets',(req,res)=>{
 
   const data = loadData()
@@ -178,7 +181,9 @@ app.get('/top-bets',(req,res)=>{
 })
 
 
-// EXPORTAR EXCEL
+/* =========================
+   EXPORTAR
+========================= */
 app.get('/export',(req,res)=>{
 
   const data = loadData()
@@ -203,11 +208,12 @@ app.get('/export',(req,res)=>{
 })
 
 
-// LOGIN
+/* =========================
+   LOGIN
+========================= */
 app.post('/admin/login',(req,res)=>{
 
-  const user = req.body.user
-  const pass = req.body.pass
+  const {user,pass} = req.body
 
   if(user === "admin" && pass === "Segf.2208**++"){
     return res.send({ok:true})
@@ -217,7 +223,9 @@ app.post('/admin/login',(req,res)=>{
 })
 
 
-// PUERTO
+/* =========================
+   SERVER
+========================= */
 const PORT = process.env.PORT || 3001
 
 app.listen(PORT, ()=>{
