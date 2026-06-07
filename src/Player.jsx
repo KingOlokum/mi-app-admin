@@ -41,16 +41,8 @@ export default function Player(){
     setStep("apuestas")
   }
 
+  // ✅ FUNCIÓN CORREGIDA (SIN ERRORES)
   const apostar = async (id)=>{
-
-    // ✅ FIX IMPORTANTE
-    const match = matches.find(m => String(m.id) === String(id))
-
-    // ✅ SOLO bloquea si está cerrado
-    if(match && match.cerrado === true){
-      alert("Este partido está cerrado")
-      return
-    }
 
     const local = inputs[id]?.local
     const visitante = inputs[id]?.visitante
@@ -75,7 +67,7 @@ export default function Player(){
         resultado
       })
 
-      alert("Apuesta registrada")
+      alert("Apuesta registrada ✅")
 
       const res = await axios.get(API+'/top-bets')
       setRanking(res.data)
@@ -85,10 +77,12 @@ export default function Player(){
     }
   }
 
+  // ✅ LOGIN
   if(step==="login"){
     return (
       <div style={wrap}>
         <div style={card}>
+
           <input
             style={input}
             placeholder="Nombre"
@@ -124,11 +118,13 @@ export default function Player(){
           <button style={btn} onClick={entrar}>
             Entrar
           </button>
+
         </div>
       </div>
     )
   }
 
+  // ✅ APUESTAS
   return (
     <div style={wrap}>
       <div style={card}>
@@ -137,7 +133,7 @@ export default function Player(){
 
         {matches.map(m=>{
 
-          const cerrado = m.cerrado ? true : false
+          const cerrado = m.cerrado === true
           const top = ranking[m.id] || []
           const total = top.reduce((acc,r)=>acc+r.cantidad,0)
 
@@ -148,6 +144,7 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
+              {/* ✅ SOLO MENSAJE */}
               {cerrado && (
                 <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
                   Apuestas cerradas
@@ -197,6 +194,41 @@ export default function Player(){
                 Apostar
               </button>
 
+              {/* RANKING */}
+              <div style={{marginTop:10}}>
+
+                {top.map((r,i)=>{
+
+                  const porcentaje = total
+                    ? Math.round((r.cantidad/total)*100)
+                    : 0
+
+                  return (
+                    <div key={i} style={{marginBottom:8}}>
+
+                      <div style={{
+                        display:"flex",
+                        justifyContent:"space-between",
+                        fontSize:12
+                      }}>
+                        <span>{r.resultado}</span>
+                        <span>{porcentaje}%</span>
+                      </div>
+
+                      <div style={barBg}>
+                        <div style={{
+                          width:`${porcentaje}%`,
+                          height:"100%",
+                          background:"#facc15"
+                        }}></div>
+                      </div>
+
+                    </div>
+                  )
+                })}
+
+              </div>
+
             </div>
           )
         })}
@@ -204,4 +236,82 @@ export default function Player(){
       </div>
     </div>
   )
+}
+
+
+// estilos (los tuyos)
+
+const wrap={
+  minHeight:"100vh",
+  display:"flex",
+  justifyContent:"center",
+  paddingTop:"80px",
+  background:"#020617"
+}
+
+const card={
+  background:"#0f172a",
+  padding:"25px",
+  borderRadius:"16px",
+  width:"360px",
+  color:"#fff",
+  display:"flex",
+  flexDirection:"column",
+  gap:"15px"
+}
+
+const box={
+  background:"#1e293b",
+  padding:"15px",
+  borderRadius:"12px",
+  display:"flex",
+  flexDirection:"column",
+  gap:"10px"
+}
+
+const teams={
+  textAlign:"center",
+  fontWeight:"700"
+}
+
+const scoreBox={
+  display:"flex",
+  justifyContent:"center",
+  alignItems:"center",
+  gap:"10px"
+}
+
+const scoreInput={
+  width:"60px",
+  padding:"10px",
+  textAlign:"center",
+  borderRadius:"8px",
+  border:"1px solid #334155",
+  background:"#020617",
+  color:"#fff"
+}
+
+const input={
+  padding:"10px",
+  borderRadius:"8px",
+  border:"1px solid #334155",
+  background:"#020617",
+  color:"#fff"
+}
+
+const btn={
+  padding:"10px",
+  borderRadius:"10px",
+  border:"none",
+  background:"#0284c7",
+  color:"#fff",
+  cursor:"pointer"
+}
+
+const barBg={
+  height:"6px",
+  background:"#334155",
+  borderRadius:"6px",
+  overflow:"hidden",
+  marginTop:"4px"
 }
