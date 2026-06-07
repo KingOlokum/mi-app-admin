@@ -20,11 +20,13 @@ async function start(){
 
   console.log("✅ Mongo conectado")
 
+  // REGISTER
   app.post('/register', async (req,res)=>{
     await db.collection("users").insertOne(req.body)
     res.send({ok:true})
   })
 
+  // MATCHES
   app.get('/matches', async (req,res)=>{
     const data = await db.collection("matches").find().toArray()
     res.send(data)
@@ -43,29 +45,32 @@ async function start(){
     res.send({ok:true})
   })
 
+  // ✅ CERRAR (CORREGIDO)
   app.post('/admin/cerrar/:id', async (req,res)=>{
-    const id = String(req.params.id)
+    const id = String(req.params.id).trim()
 
     await db.collection("matches").updateOne(
-      { id },
+      { id: id },
       { $set:{ cerrado:true } }
     )
 
     res.send({ok:true})
   })
 
+  // ✅ BORRAR (CORREGIDO)
   app.delete('/admin/match/:id', async (req,res)=>{
-    const id = String(req.params.id)
+    const id = String(req.params.id).trim()
 
-    await db.collection("matches").deleteOne({ id })
+    await db.collection("matches").deleteOne({ id: id })
     await db.collection("predictions").deleteMany({ matchId:id })
 
     res.send({ok:true})
   })
 
+  // ✅ PREDICT (CORREGIDO)
   app.post('/predict', async (req,res)=>{
 
-    const id = String(req.body.matchId)
+    const id = String(req.body.matchId).trim()
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -90,20 +95,20 @@ async function start(){
       usuario:req.body.usuario,
       telefono:req.body.telefono,
       matchId:id,
-      resultado:req.body.resultado,
-      pagado:false
+      resultado:req.body.resultado
     })
 
     res.send({ok:true})
   })
 
+  // BETS
   app.get('/bets', async (req,res)=>{
     const data = await db.collection("predictions").find().toArray()
     res.send(data)
   })
 
+  // ✅ RANKING (CORREGIDO)
   app.get('/top-bets', async (req,res)=>{
-
     const matches = await db.collection("matches").find().toArray()
     const predictions = await db.collection("predictions").find().toArray()
 
@@ -112,7 +117,7 @@ async function start(){
     matches.forEach(match=>{
 
       const apuestas = predictions.filter(
-        p => String(p.matchId) === String(match.id)
+        p => String(p.matchId).trim() === String(match.id).trim()
       )
 
       let conteo = {}
@@ -122,31 +127,16 @@ async function start(){
       })
 
       resultado[match.id] = Object.entries(conteo)
-        .sort((a,b)=>b[1]-a[1])
-        .slice(0,3)
-        .map(i=>({
-          resultado:i[0],
-          cantidad:i[1]
-        }))
-
+        .map(([resultado,cantidad])=>({resultado,cantidad}))
     })
 
     res.send(resultado)
   })
 
-  app.post('/admin/login',(req,res)=>{
-    const {user,pass} = req.body
-
-    if(user==="admin" && pass==="Segf.2208**++"){
-      return res.send({ok:true})
-    }
-
-    res.status(401).send({error:"Credenciales incorrectas"})
-  })
-
   app.listen(PORT, ()=>{
-    console.log("🚀 Servidor listo")
+    console.log("🚀 Servidor funcionando")
   })
+
 }
 
 start()
