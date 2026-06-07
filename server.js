@@ -52,7 +52,6 @@ app.post('/admin/match',(req,res)=>{
   })
 
   saveData({ users, matches, predictions })
-
   res.send({ok:true})
 })
 
@@ -161,10 +160,13 @@ app.post('/admin/pago',(req,res)=>{
 })
 
 
-// TOTAL (FUNCIONANDO ✅)
+// ✅✅✅ TOTAL CORREGIDO (CLAVE)
 app.get('/total',(req,res)=>{
 
-  const total = predictions
+  // leer siempre datos reales del archivo
+  const data = loadData()
+
+  const total = data.predictions
     .filter(p => p.pagado === true)
     .length * 5000
 
@@ -175,11 +177,13 @@ app.get('/total',(req,res)=>{
 // EXPORTAR EXCEL
 app.get('/export',(req,res)=>{
 
+  const data = loadData()
+
   let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
 
-  predictions.forEach(p=>{
+  data.predictions.forEach(p=>{
 
-    const match = matches.find(m => m.id == p.matchId)
+    const match = data.matches.find(m => m.id == p.matchId)
 
     const nombrePartido = match
       ? `${match.equipo1} vs ${match.equipo2}`
@@ -188,15 +192,8 @@ app.get('/export',(req,res)=>{
     csv += `"${p.usuario}";"${p.telefono}";"${nombrePartido}";"'${p.resultado}'";"${p.pagado}"\n`
   })
 
-  res.setHeader(
-    "Content-Type",
-    "text/csv; charset=utf-8"
-  )
-
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=quiniela.csv"
-  )
+  res.setHeader("Content-Type","text/csv; charset=utf-8")
+  res.setHeader("Content-Disposition","attachment; filename=quiniela.csv")
 
   res.send("\uFEFF" + csv)
 })
