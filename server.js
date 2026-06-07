@@ -7,17 +7,21 @@ const app = express()
 app.use(cors({ origin: "*" }))
 app.use(express.json())
 
-// ✅ TU URL DE MONGO (YA CONFIGURADA)
-const uri = "mongodb+srv://andressanchez03_db_user:ixmqPLWkTWBnSztxX@cluster0.wdalzh5.mongodb.net/?appName=Cluster0"
+// ✅ CONEXIÓN CORRECTA CON BASE DEFINIDA
+const uri = "mongodb+srv://andressanchez03_db_user:ixmqPLWkTWBnSztxX@cluster0.wdalzh5.mongodb.net/apuestas?retryWrites=true&w=majority"
 
 const client = new MongoClient(uri)
 
 let db
 
 async function conectar(){
-  await client.connect()
-  db = client.db("apuestas")
-  console.log("✅ MongoDB conectado")
+  try{
+    await client.connect()
+    db = client.db("apuestas")
+    console.log("✅ MongoDB conectado")
+  }catch(e){
+    console.error("❌ Error Mongo:", e)
+  }
 }
 
 conectar()
@@ -56,7 +60,7 @@ app.post('/admin/match', async (req,res)=>{
 app.post('/admin/cerrar/:id', async (req,res)=>{
 
   await db.collection("matches").updateOne(
-    { id:Number(req.params.id) },
+    { id: Number(req.params.id) },
     { $set:{ cerrado:true } }
   )
 
@@ -87,7 +91,7 @@ app.post('/predict', async (req,res)=>{
     return res.status(400).send({error:"Partido no existe"})
   }
 
-  if(match.cerrado === true){
+  if(match.cerrado){
     return res.status(400).send({error:"Apuestas cerradas"})
   }
 
@@ -138,9 +142,7 @@ app.get('/total', async (req,res)=>{
 
   const data = await db.collection("predictions").find().toArray()
 
-  const total = data
-    .filter(p => p.pagado === true)
-    .length * 5000
+  const total = data.filter(p=>p.pagado).length * 5000
 
   res.send({total})
 })
@@ -156,13 +158,9 @@ app.get('/total-by-match', async (req,res)=>{
 
   let totales = {}
 
-  matches.forEach(match => {
-
-    const apuestas = predictions.filter(p =>
-      p.matchId == match.id && p.pagado === true
-    )
-
-    totales[match.id] = apuestas.length * 5000
+  matches.forEach(match=>{
+    const total = predictions.filter(p=>p.matchId==match.id && p.pagado).length * 5000
+    totales[match.id] = total
   })
 
   res.send(totales)
@@ -179,9 +177,9 @@ app.get('/top-bets', async (req,res)=>{
 
   let resultado = {}
 
-  matches.forEach(match => {
+  matches.forEach(match=>{
 
-    const apuestas = predictions.filter(p => p.matchId == match.id)
+    const apuestas = predictions.filter(p=>p.matchId == match.id)
 
     let conteo = {}
 
@@ -201,34 +199,6 @@ app.get('/top-bets', async (req,res)=>{
   })
 
   res.send(resultado)
-})
-
-
-/* =========================
-   EXPORTAR
-========================= */
-app.get('/export', async (req,res)=>{
-
-  const predictions = await db.collection("predictions").find().toArray()
-  const matches = await db.collection("matches").find().toArray()
-
-  let csv = "Usuario;Telefono;Partido;Resultado;Pagado\n"
-
-  predictions.forEach(p=>{
-
-    const match = matches.find(m => m.id == p.matchId)
-
-    const nombrePartido = match
-      ? `${match.equipo1} vs ${match.equipo2}`
-      : "Partido eliminado"
-
-    csv += `"${p.usuario}";"${p.telefono}";"${nombrePartido}";"'${p.resultado}'";"${p.pagado}"\n`
-  })
-
-  res.setHeader("Content-Type","text/csv; charset=utf-8")
-  res.setHeader("Content-Disposition","attachment; filename=quiniela.csv")
-
-  res.send("\uFEFF" + csv)
 })
 
 
