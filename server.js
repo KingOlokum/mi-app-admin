@@ -10,22 +10,19 @@ const PORT = process.env.PORT || 3001
 
 const uri = "mongodb+srv://andressanchez03_db_user:ClaveApuesta123@cluster0.wdalzh5.mongodb.net/apuestas?retryWrites=true&w=majority"
 
-
 let db
 
 async function start(){
-
   try{
-
     const client = new MongoClient(uri)
-
     await client.connect()
-
     db = client.db("apuestas")
 
     console.log("✅ Mongo conectado")
 
-    // ✅ RUTAS (IMPORTANTE: dentro del start)
+    /* =========================
+       PARTIDOS
+    ========================= */
 
     app.get('/matches', async (req,res)=>{
       const data = await db.collection("matches").find().toArray()
@@ -42,7 +39,6 @@ async function start(){
       }
 
       await db.collection("matches").insertOne(nuevo)
-
       res.send({ok:true})
     })
 
@@ -61,28 +57,55 @@ async function start(){
       res.send({ok:true})
     })
 
+    /* =========================
+       APUESTAS (CORREGIDO)
+    ========================= */
+
     app.post('/predict', async (req,res)=>{
+      try{
+        const { matchId, telefono, resultado, usuario } = req.body
 
-      const match = await db.collection("matches").findOne({
-        id:Number(req.body.matchId)
-      })
+        const id = Number(matchId)
 
-      if(!match){
-        return res.status(400).send({error:"No existe"})
+        const match = await db.collection("matches").findOne({ id })
+
+        if(!match){
+          return res.status(400).send({error:"Partido no existe"})
+        }
+
+        if(match.cerrado){
+          return res.status(400).send({error:"Apuestas cerradas"})
+        }
+
+        // ✅ evitar duplicados
+        const ya = await db.collection("predictions").findOne({
+          telefono,
+          matchId:id
+        })
+
+        if(ya){
+          return res.status(400).send({error:"Ya apostaste"})
+        }
+
+        await db.collection("predictions").insertOne({
+          usuario,
+          telefono,
+          matchId:id,
+          resultado,
+          pagado:false
+        })
+
+        res.send({ok:true})
+
+      }catch(e){
+        console.error("ERROR PREDICT:", e)
+        res.status(500).send({error:"Error al apostar"})
       }
-
-      if(match.cerrado){
-        return res.status(400).send({error:"Cerrado"})
-      }
-
-      await db.collection("predictions").insertOne({
-        ...req.body,
-        matchId:Number(req.body.matchId),
-        pagado:false
-      })
-
-      res.send({ok:true})
     })
+
+    /* =========================
+       TOTALES
+    ========================= */
 
     app.get('/total-by-match', async (req,res)=>{
       const matches = await db.collection("matches").find().toArray()
@@ -97,6 +120,10 @@ async function start(){
 
       res.send(totales)
     })
+
+    /* =========================
+       RANKING
+    ========================= */
 
     app.get('/top-bets', async (req,res)=>{
       const matches = await db.collection("matches").find().toArray()
@@ -125,6 +152,10 @@ async function start(){
       res.send(resultado)
     })
 
+    /* =========================
+       LOGIN ADMIN
+    ========================= */
+
     app.post('/admin/login',(req,res)=>{
       const {user,pass} = req.body
 
@@ -135,7 +166,9 @@ async function start(){
       res.status(401).send({error:"Credenciales incorrectas"})
     })
 
-    // ✅ INICIAR SERVIDOR SOLO DESPUÉS DE MONGO
+    /* =========================
+       SERVER
+    ========================= */
 
     app.listen(PORT, ()=>{
       console.log("🚀 Servidor listo en puerto", PORT)
