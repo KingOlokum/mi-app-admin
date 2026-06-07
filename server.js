@@ -13,21 +13,15 @@ const uri = "mongodb+srv://andressanchez03_db_user:ClaveApuesta123@cluster0.wdal
 let db
 
 async function start(){
-
   const client = new MongoClient(uri)
   await client.connect()
-
   db = client.db("apuestas")
 
   console.log("✅ Mongo conectado")
 
-  // ✅ =========================
-  // PARTIDOS
-  // ✅ =========================
-
   app.get('/matches', async (req,res)=>{
-    const matches = await db.collection("matches").find().toArray()
-    res.send(matches)
+    const data = await db.collection("matches").find().toArray()
+    res.send(data)
   })
 
   app.post('/admin/match', async (req,res)=>{
@@ -38,9 +32,7 @@ async function start(){
       limite: req.body.limite,
       cerrado:false
     }
-
     await db.collection("matches").insertOne(nuevo)
-
     res.send({ok:true})
   })
 
@@ -54,81 +46,67 @@ async function start(){
 
   app.delete('/admin/match/:id', async (req,res)=>{
     const id = Number(req.params.id)
-
     await db.collection("matches").deleteOne({ id })
     await db.collection("predictions").deleteMany({ matchId:id })
+    res.send({ok:true})
+  })
+
+  app.post('/predict', async (req,res)=>{
+
+    const id = Number(req.body.matchId)
+
+    const match = await db.collection("matches").findOne({ id })
+
+    if(!match){
+      return res.status(400).send({error:"Partido no existe"})
+    }
+
+    if(match.cerrado){
+      return res.status(400).send({error:"Apuestas cerradas"})
+    }
+
+    const ya = await db.collection("predictions").findOne({
+      telefono:req.body.telefono,
+      matchId:id
+    })
+
+    if(ya){
+      return res.status(400).send({error:"Ya apostaste"})
+    }
+
+    await db.collection("predictions").insertOne({
+      usuario:req.body.usuario,
+      telefono:req.body.telefono,
+      matchId:id,
+      resultado:req.body.resultado,
+      pagado:false
+    })
 
     res.send({ok:true})
   })
 
-  // ✅ =========================
-  // APUESTAS
-  // ✅ =========================
-
-  app.post('/predict', async (req,res)=>{
-    try{
-
-      const { matchId, telefono, resultado, usuario } = req.body
-      const id = Number(matchId)
-
-      const match = await db.collection("matches").findOne({ id })
-
-      if(!match){
-        return res.status(400).send({error:"Partido no existe"})
-      }
-
-      if(match.cerrado){
-        return res.status(400).send({error:"Apuestas cerradas"})
-      }
-
-      const ya = await db.collection("predictions").findOne({
-        telefono,
-        matchId:id
-      })
-
-      if(ya){
-        return res.status(400).send({error:"Ya apostaste"})
-      }
-
-      await db.collection("predictions").insertOne({
-        usuario,
-        telefono,
-        matchId:id,
-        resultado,
-        pagado:false
-      })
-
-      res.send({ok:true})
-
-    }catch(e){
-      console.log("ERROR PREDICT", e)
-      res.status(500).send({error:"Error al apostar"})
-    }
+  app.get('/bets', async (req,res)=>{
+    const data = await db.collection("predictions").find().toArray()
+    res.send(data)
   })
 
-  // ✅ =========================
-  // TOTALES
-  // ✅ =========================
-
   app.get('/total-by-match', async (req,res)=>{
+
     const matches = await db.collection("matches").find().toArray()
     const predictions = await db.collection("predictions").find().toArray()
 
     let totales = {}
 
     matches.forEach(m=>{
-      const total = predictions.filter(p=>p.matchId == m.id && p.pagado).length * 5000
+      const total = predictions.filter(p=>p.matchId==m.id && p.pagado).length * 5000
       totales[m.id] = total
     })
 
     res.send(totales)
   })
 
-  // ✅ =========================
-  // RANKING
-  // ✅ =========================
-
   app.get('/top-bets', async (req,res)=>{
+
     const matches = await db.collection("matches").find().toArray()
     const predictions = await db.collection("predictions").find().toArray()
 
@@ -156,23 +134,18 @@ async function start(){
     res.send(resultado)
   })
 
-  // ✅ =========================
-  // LOGIN
-  // ✅ =========================
-
   app.post('/admin/login',(req,res)=>{
     const {user,pass} = req.body
 
-    if(user === "admin" && pass === "Segf.2208**++"){
+    if(user==="admin" && pass==="Segf.2208**++"){
       return res.send({ok:true})
     }
 
     res.status(401).send({error:"Credenciales incorrectas"})
   })
 
-  // ✅ SERVER
   app.listen(PORT, ()=>{
-    console.log("🚀 Servidor corriendo en", PORT)
+    console.log("🚀 Servidor listo")
   })
 }
 
