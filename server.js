@@ -19,6 +19,7 @@ async function start(){
 
   console.log("✅ Mongo conectado")
 
+  // ✅ PARTIDOS
   app.get('/matches', async (req,res)=>{
     const data = await db.collection("matches").find().toArray()
     res.send(data)
@@ -26,34 +27,38 @@ async function start(){
 
   app.post('/admin/match', async (req,res)=>{
     const nuevo = {
-      id: Date.now(),
+      id: Date.now().toString(), // ✅ STRING
       equipo1: req.body.equipo1,
       equipo2: req.body.equipo2,
       limite: req.body.limite,
       cerrado:false
     }
+
     await db.collection("matches").insertOne(nuevo)
     res.send({ok:true})
   })
 
   app.post('/admin/cerrar/:id', async (req,res)=>{
     await db.collection("matches").updateOne(
-      { id:Number(req.params.id) },
+      { id: req.params.id }, // ✅ STRING
       { $set:{ cerrado:true } }
     )
     res.send({ok:true})
   })
 
   app.delete('/admin/match/:id', async (req,res)=>{
-    const id = Number(req.params.id)
+    const id = req.params.id
+
     await db.collection("matches").deleteOne({ id })
     await db.collection("predictions").deleteMany({ matchId:id })
+
     res.send({ok:true})
   })
 
+  // ✅ APUESTAS (FIX REAL)
   app.post('/predict', async (req,res)=>{
 
-    const id = Number(req.body.matchId)
+    const id = req.body.matchId // ✅ SIN Number
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -85,11 +90,13 @@ async function start(){
     res.send({ok:true})
   })
 
+  // ✅ APUESTAS LISTA
   app.get('/bets', async (req,res)=>{
     const data = await db.collection("predictions").find().toArray()
     res.send(data)
   })
 
+  // ✅ TOTALES
   app.get('/total-by-match', async (req,res)=>{
 
     const matches = await db.collection("matches").find().toArray()
@@ -98,13 +105,14 @@ async function start(){
     let totales = {}
 
     matches.forEach(m=>{
-      const total = predictions.filter(p=>p.matchId==m.id && p.pagado).length * 5000
+      const total = predictions.filter(p=>p.matchId == m.id && p.pagado).length * 5000
       totales[m.id] = total
     })
 
     res.send(totales)
   })
 
+  // ✅ RANKING
   app.get('/top-bets', async (req,res)=>{
 
     const matches = await db.collection("matches").find().toArray()
@@ -134,6 +142,7 @@ async function start(){
     res.send(resultado)
   })
 
+  // ✅ LOGIN
   app.post('/admin/login',(req,res)=>{
     const {user,pass} = req.body
 
