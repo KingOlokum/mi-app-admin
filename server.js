@@ -8,33 +8,25 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 3001
 
+// ✅ FIX URI
 const uri = "mongodb+srv://andressanchez03_db_user:ClaveApuesta123@cluster0.wdalzh5.mongodb.net/apuestas?retryWrites=true&w=majority"
 
 let db
 
 async function start(){
-
   const client = new MongoClient(uri)
   await client.connect()
   db = client.db("apuestas")
 
   console.log("✅ Mongo conectado")
 
-  /* =========================
-     ✅ REGISTER
-  ========================= */
+  // REGISTER
   app.post('/register', async (req,res)=>{
-    try{
-      await db.collection("users").insertOne(req.body)
-      res.send({ok:true})
-    }catch(e){
-      res.status(500).send({error:"Error registro"})
-    }
+    await db.collection("users").insertOne(req.body)
+    res.send({ok:true})
   })
 
-  /* =========================
-     ✅ MATCHES
-  ========================= */
+  // MATCHES
   app.get('/matches', async (req,res)=>{
     const data = await db.collection("matches").find().toArray()
     res.send(data)
@@ -42,7 +34,7 @@ async function start(){
 
   app.post('/admin/match', async (req,res)=>{
     const nuevo = {
-      id: Date.now().toString(), ✅ // clave
+      id: Date.now().toString(),
       equipo1: req.body.equipo1,
       equipo2: req.body.equipo2,
       limite: req.body.limite,
@@ -70,12 +62,10 @@ async function start(){
     res.send({ok:true})
   })
 
-  /* =========================
-     ✅ APUESTAS
-  ========================= */
+  // PREDICT
   app.post('/predict', async (req,res)=>{
 
-    const id = req.body.matchId
+    const id = String(req.body.matchId)
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -107,24 +97,23 @@ async function start(){
     res.send({ok:true})
   })
 
+  // BETS
   app.get('/bets', async (req,res)=>{
     const data = await db.collection("predictions").find().toArray()
     res.send(data)
   })
 
+  // RANKING
   app.get('/top-bets', async (req,res)=>{
-
     const matches = await db.collection("matches").find().toArray()
     const predictions = await db.collection("predictions").find().toArray()
 
     let resultado = {}
 
     matches.forEach(match=>{
-
-      const apuestas = predictions.filter(p=>p.matchId == match.id)
+      const apuestas = predictions.filter(p=>p.matchId === match.id)
 
       let conteo = {}
-
       apuestas.forEach(a=>{
         conteo[a.resultado] = (conteo[a.resultado] || 0) + 1
       })
@@ -141,6 +130,7 @@ async function start(){
     res.send(resultado)
   })
 
+  // LOGIN
   app.post('/admin/login',(req,res)=>{
     const {user,pass} = req.body
 
