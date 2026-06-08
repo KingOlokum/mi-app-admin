@@ -18,16 +18,14 @@ export default function Player(){
 
   useEffect(()=>{
     if(step==="apuestas"){
-      axios.get(API+'/matches')
-        .then(r=>setMatches(r.data))
-        .catch(()=>console.log("error matches"))
-
-      axios.get(API+'/top-bets')
-        .then(r=>setRanking(r.data || {}))
-        .catch(()=>console.log("error ranking"))
+      axios.get(API+'/matches').then(r=>setMatches(r.data))
+      axios.get(API+'/top-bets').then(r=>{
+        setRanking(r.data || {})
+      })
     }
   },[step])
 
+  // ✅ LOGIN SIN BACKEND
   const entrar = async ()=>{
 
     if(form.telefono.length !== 10){
@@ -40,13 +38,7 @@ export default function Player(){
       return
     }
 
-    try{
-      await axios.post(API+'/register',form)
-    }catch(e){
-      console.log("register falló pero seguimos")
-    }
-
-    setStep("apuestas") // ✅ entra siempre
+    setStep("apuestas") // ✅ directo sin register
   }
 
   const apostar = async (id)=>{
@@ -80,7 +72,7 @@ export default function Player(){
       setRanking(res.data)
 
     }catch(e){
-      alert(e.response?.data?.error || "Error")
+      alert("Error al apostar")
     }
   }
 
@@ -138,7 +130,6 @@ export default function Player(){
 
         {matches.map(m=>{
 
-          const cerrado = m.cerrado === true
           const top = ranking[m.id] || []
           const total = top.reduce((acc,r)=>acc+r.cantidad,0)
 
@@ -149,7 +140,7 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {cerrado && (
+              {m.cerrado && (
                 <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
                   Apuestas cerradas
                 </div>
@@ -159,7 +150,6 @@ export default function Player(){
 
                 <input
                   type="number"
-                  min="0"
                   value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -175,7 +165,6 @@ export default function Player(){
 
                 <input
                   type="number"
-                  min="0"
                   value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -196,14 +185,12 @@ export default function Player(){
               <div style={{marginTop:10}}>
 
                 {top.map((r,i)=>{
-
                   const porcentaje = total
                     ? Math.round((r.cantidad/total)*100)
                     : 0
 
                   return (
                     <div key={i} style={{marginBottom:8}}>
-
                       <div style={{
                         display:"flex",
                         justifyContent:"space-between",
@@ -220,7 +207,6 @@ export default function Player(){
                           background:"#facc15"
                         }}></div>
                       </div>
-
                     </div>
                   )
                 })}
@@ -234,79 +220,4 @@ export default function Player(){
       </div>
     </div>
   )
-}
-
-const wrap={
-  minHeight:"100vh",
-  display:"flex",
-  justifyContent:"center",
-  paddingTop:"80px",
-  background:"#020617"
-}
-
-const card={
-  background:"#0f172a",
-  padding:"25px",
-  borderRadius:"16px",
-  width:"360px",
-  color:"#fff",
-  display:"flex",
-  flexDirection:"column",
-  gap:"15px"
-}
-
-const box={
-  background:"#1e293b",
-  padding:"15px",
-  borderRadius:"12px",
-  display:"flex",
-  flexDirection:"column",
-  gap:"10px"
-}
-
-const teams={
-  textAlign:"center",
-  fontWeight:"700"
-}
-
-const scoreBox={
-  display:"flex",
-  justifyContent:"center",
-  alignItems:"center",
-  gap:"10px"
-}
-
-const scoreInput={
-  width:"60px",
-  padding:"10px",
-  textAlign:"center",
-  borderRadius:"8px",
-  border:"1px solid #334155",
-  background:"#020617",
-  color:"#fff"
-}
-
-const input={
-  padding:"10px",
-  borderRadius:"8px",
-  border:"1px solid #334155",
-  background:"#020617",
-  color:"#fff"
-}
-
-const btn={
-  padding:"10px",
-  borderRadius:"10px",
-  border:"none",
-  background:"#0284c7",
-  color:"#fff",
-  cursor:"pointer"
-}
-
-const barBg={
-  height:"6px",
-  background:"#334155",
-  borderRadius:"6px",
-  overflow:"hidden",
-  marginTop:"4px"
 }
