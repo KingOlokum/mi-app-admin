@@ -3,6 +3,7 @@ import cors from 'cors'
 import { MongoClient } from 'mongodb'
 
 const app = express()
+
 app.use(cors())
 app.use(express.json())
 
@@ -20,21 +21,25 @@ async function start(){
 
   console.log("✅ Mongo conectado")
 
-  // REGISTER
+  // ✅ REGISTER (NO BLOQUEA NUNCA)
   app.post('/register', async (req,res)=>{
-    await db.collection("users").insertOne(req.body)
+    try{
+      await db.collection("users").insertOne(req.body)
+    }catch(e){}
     res.send({ok:true})
   })
 
-  // MATCHES
+  // ✅ MATCHES
   app.get('/matches', async (req,res)=>{
     const data = await db.collection("matches").find().toArray()
     res.send(data)
   })
 
+  // ✅ CREAR
   app.post('/admin/match', async (req,res)=>{
+
     const nuevo = {
-      id: String(Date.now()),
+      id: Date.now().toString(),
       equipo1: req.body.equipo1,
       equipo2: req.body.equipo2,
       limite: req.body.limite,
@@ -47,10 +52,9 @@ async function start(){
 
   // ✅ CERRAR
   app.post('/admin/cerrar/:id', async (req,res)=>{
-    const id = String(req.params.id)
 
     await db.collection("matches").updateOne(
-      { id },
+      { id:req.params.id },
       { $set:{ cerrado:true } }
     )
 
@@ -59,7 +63,8 @@ async function start(){
 
   // ✅ BORRAR
   app.delete('/admin/match/:id', async (req,res)=>{
-    const id = String(req.params.id)
+
+    const id = req.params.id
 
     await db.collection("matches").deleteOne({ id })
     await db.collection("predictions").deleteMany({ matchId:id })
@@ -70,7 +75,7 @@ async function start(){
   // ✅ PREDICT
   app.post('/predict', async (req,res)=>{
 
-    const id = String(req.body.matchId)
+    const id = req.body.matchId
 
     const match = await db.collection("matches").findOne({ id })
 
@@ -111,11 +116,10 @@ async function start(){
 
     matches.forEach(match=>{
 
-      const apuestas = predictions.filter(
-        p => String(p.matchId) === String(match.id)
-      )
+      const apuestas = predictions.filter(p=>p.matchId === match.id)
 
       let conteo = {}
+
       apuestas.forEach(a=>{
         conteo[a.resultado] = (conteo[a.resultado] || 0) + 1
       })
@@ -128,7 +132,7 @@ async function start(){
   })
 
   app.listen(PORT, ()=>{
-    console.log("🚀 OK funcionando")
+    console.log("🚀 Servidor funcionando")
   })
 }
 

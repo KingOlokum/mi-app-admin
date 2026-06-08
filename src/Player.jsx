@@ -18,10 +18,13 @@ export default function Player(){
 
   useEffect(()=>{
     if(step==="apuestas"){
-      axios.get(API+'/matches').then(r=>setMatches(r.data))
-      axios.get(API+'/top-bets').then(r=>{
-        setRanking(r.data || {})
-      })
+      axios.get(API+'/matches')
+        .then(r=>setMatches(r.data))
+        .catch(()=>console.log("error matches"))
+
+      axios.get(API+'/top-bets')
+        .then(r=>setRanking(r.data || {}))
+        .catch(()=>console.log("error ranking"))
     }
   },[step])
 
@@ -37,11 +40,15 @@ export default function Player(){
       return
     }
 
-    await axios.post(API+'/register',form)
-    setStep("apuestas")
+    try{
+      await axios.post(API+'/register',form)
+    }catch(e){
+      console.log("register falló pero seguimos")
+    }
+
+    setStep("apuestas") // ✅ entra siempre
   }
 
-  // ✅ FUNCIÓN CORREGIDA (SIN ERRORES)
   const apostar = async (id)=>{
 
     const local = inputs[id]?.local
@@ -77,7 +84,6 @@ export default function Player(){
     }
   }
 
-  // ✅ LOGIN
   if(step==="login"){
     return (
       <div style={wrap}>
@@ -124,7 +130,6 @@ export default function Player(){
     )
   }
 
-  // ✅ APUESTAS
   return (
     <div style={wrap}>
       <div style={card}>
@@ -144,7 +149,6 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
-              {/* ✅ SOLO MENSAJE */}
               {cerrado && (
                 <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
                   Apuestas cerradas
@@ -156,7 +160,6 @@ export default function Player(){
                 <input
                   type="number"
                   min="0"
-                  placeholder="0"
                   value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -173,7 +176,6 @@ export default function Player(){
                 <input
                   type="number"
                   min="0"
-                  placeholder="0"
                   value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -187,14 +189,10 @@ export default function Player(){
 
               </div>
 
-              <button
-                style={btn}
-                onClick={()=>apostar(m.id)}
-              >
+              <button style={btn} onClick={()=>apostar(m.id)}>
                 Apostar
               </button>
 
-              {/* RANKING */}
               <div style={{marginTop:10}}>
 
                 {top.map((r,i)=>{
@@ -237,9 +235,6 @@ export default function Player(){
     </div>
   )
 }
-
-
-// estilos (los tuyos)
 
 const wrap={
   minHeight:"100vh",

@@ -6,6 +6,11 @@ const API = "https://mi-app-admin.onrender.com"
 export default function Admin(){
 
   const [matches,setMatches] = useState([])
+  const [form,setForm] = useState({
+    equipo1:"",
+    equipo2:"",
+    limite:""
+  })
 
   useEffect(()=>{
     cargar()
@@ -14,6 +19,11 @@ export default function Admin(){
   const cargar = async ()=>{
     const r = await axios.get(API+"/matches")
     setMatches(r.data || [])
+  }
+
+  const crear = async ()=>{
+    await axios.post(API+"/admin/match",form)
+    cargar()
   }
 
   const cerrar = async (id)=>{
@@ -31,12 +41,23 @@ export default function Admin(){
 
       <h2>Admin</h2>
 
+      <button onClick={crear}>Crear partido</button>
+
       {matches.map(m=>(
         <div key={m.id}>
+
           {m.equipo1} vs {m.equipo2} - {m.cerrado ? "CERRADO" : "ABIERTO"}
 
-          <button onClick={()=>cerrar(m.id)}>Cerrar</button>
-          <button onClick={()=>borrar(m.id)}>Borrar</button>
+          <br/>
+
+          <button onClick={()=>cerrar(m.id)}>
+            Cerrar
+          </button>
+
+          <button onClick={()=>borrar(m.id)}>
+            Borrar
+          </button>
+
         </div>
       ))}
 
