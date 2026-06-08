@@ -29,24 +29,35 @@ export default function Player(){
     }
   },[step])
 
-  // ✅ ENTRAR (sin backend)
+  // ✅ ENTRAR
   const entrar = ()=>{
     if(form.telefono.length !== 10){
       alert("Teléfono inválido")
       return
     }
 
+    if(!form.telefono.startsWith("3")){
+      alert("Número inválido")
+      return
+    }
+
     setStep("apuestas")
   }
 
-  // ✅ APOSTAR
+  // ✅ APOSTAR (CORREGIDO)
   const apostar = async (id)=>{
 
     const local = inputs[id]?.local
     const visitante = inputs[id]?.visitante
 
-    if(local === "" || visitante === ""){
+    if(local === "" || visitante === "" || local === undefined || visitante === undefined){
       alert("Completa marcador")
+      return
+    }
+
+    // ✅ BLOQUEA NEGATIVOS
+    if(Number(local) < 0 || Number(visitante) < 0){
+      alert("Los goles no pueden ser negativos")
       return
     }
 
@@ -70,6 +81,7 @@ export default function Player(){
     }
   }
 
+  // ✅ LOGIN
   if(step==="login"){
     return (
       <div style={wrap}>
@@ -106,6 +118,7 @@ export default function Player(){
     )
   }
 
+  // ✅ APUESTAS
   return (
     <div style={wrap}>
       <div style={card}>
@@ -124,10 +137,17 @@ export default function Player(){
                 {m.equipo1} VS {m.equipo2}
               </div>
 
+              {m.cerrado && (
+                <div style={{color:"red", fontSize:"12px", textAlign:"center"}}>
+                  Apuestas cerradas
+                </div>
+              )}
+
               <div style={scoreBox}>
 
                 <input
                   type="number"
+                  min="0"   // ✅ evita negativos en UI
                   value={inputs[m.id]?.local ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -140,6 +160,7 @@ export default function Player(){
 
                 <input
                   type="number"
+                  min="0"   // ✅ evita negativos en UI
                   value={inputs[m.id]?.visitante ?? ""}
                   style={scoreInput}
                   onChange={e=>setInputs({
@@ -179,6 +200,7 @@ export default function Player(){
   )
 }
 
+// ✅ estilos
 const wrap={ minHeight:"100vh",display:"flex",justifyContent:"center",paddingTop:"80px",background:"#020617" }
 const card={ background:"#0f172a",padding:"25px",borderRadius:"16px",width:"360px",color:"#fff",display:"flex",flexDirection:"column",gap:"15px" }
 const box={ background:"#1e293b",padding:"15px",borderRadius:"12px" }
